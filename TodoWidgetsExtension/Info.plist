@@ -9,5 +9,7 @@
 	</dict>
 	<key>NSRemindersUsageDescription</key>
 	<string>Widget shows tasks from your reminders</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Widget shows today's calendar events</string>
 </dict>
 </plist>
