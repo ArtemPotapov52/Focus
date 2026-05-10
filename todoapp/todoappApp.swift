@@ -1,21 +1,15 @@
-//
-//  todoappApp.swift
-//  todoapp
-//
-//  Created by Артем Потапов on 09.05.2026.
-//
-
 import SwiftUI
-import CoreData
+import SwiftData
 
 @main
 struct todoappApp: App {
-    let persistenceController = PersistenceController.shared
+    @State private var ek = EventKitManager()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environment(ek)
+                .modelContainer(for: Note.self)
         }
     }
 }
