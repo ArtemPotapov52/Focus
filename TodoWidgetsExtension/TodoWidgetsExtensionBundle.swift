@@ -5,5 +5,7 @@ import SwiftUI
 struct TodoWidgetsExtensionBundle: WidgetBundle {
     var body: some Widget {
         TodoWidgetsExtension()
+        StatsWidget()
+        CalendarWidget()
     }
 }

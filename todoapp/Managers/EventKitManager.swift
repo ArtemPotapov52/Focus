@@ -57,6 +57,7 @@ final class EventKitManager {
         if calendarGranted {
             fetchEventsAround(Date())
         }
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoWidgetsExtension")
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             self?.isLoading = false
         }
@@ -113,7 +114,11 @@ final class EventKitManager {
 
     func fetchEvents(from start: Date, to end: Date) {
         let all = store.events(matching: store.predicateForEvents(withStart: start, end: end, calendars: nil))
-        events = all.sorted { $0.startDate < $1.startDate }
+        var seen = Set<String>()
+        events = all.filter {
+            let key = "\($0.startDate.timeIntervalSince1970)-\($0.title ?? "")-\($0.eventIdentifier ?? $0.calendarItemExternalIdentifier)"
+            return seen.insert(key).inserted
+        }.sorted { $0.startDate < $1.startDate }
     }
 
     func createEvent(title: String, location: String? = nil, startDate: Date, endDate: Date, notes: String? = nil, calendar: EKCalendar? = nil, isAllDay: Bool = false) {
