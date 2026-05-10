@@ -3,11 +3,59 @@ import SwiftUI
 import EventKit
 import AppIntents
 
+// MARK: - Entity (Reminder List)
+
+struct ReminderListEntity: AppEntity {
+    let id: String
+    let title: String
+
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Список"
+
+    var displayRepresentation: DisplayRepresentation {
+        DisplayRepresentation(title: "\(title)")
+    }
+
+    static var defaultQuery = ReminderListQuery()
+}
+
+// MARK: - Query
+
+struct ReminderListQuery: EntityQuery {
+    func entities(for identifiers: [ReminderListEntity.ID]) async throws -> [ReminderListEntity] {
+        let store = EKEventStore()
+        let lists = store.calendars(for: .reminder)
+        return lists
+            .filter { identifiers.contains($0.calendarIdentifier) }
+            .map { ReminderListEntity(id: $0.calendarIdentifier, title: $0.title) }
+    }
+
+    func suggestedEntities() async throws -> [ReminderListEntity] {
+        let store = EKEventStore()
+        let lists = store.calendars(for: .reminder)
+        return lists.map { ReminderListEntity(id: $0.calendarIdentifier, title: $0.title) }
+    }
+}
+
+// MARK: - Configuration Intent
+
+struct SelectListIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource = "Выбрать список"
+    static var description: LocalizedStringResource = "Выберите список напоминаний для отображения"
+
+    @Parameter(title: "Список")
+    var list: ReminderListEntity?
+}
+
+// MARK: - Entry
+
 struct TasksEntry: TimelineEntry {
     let date: Date
     let tasks: [EKReminder]
     let error: String?
+    let listTitle: String?
 }
+
+// MARK: - Interactive Intent
 
 struct CompleteTaskIntent: AppIntent {
     static var title: LocalizedStringResource = "Выполнить задачу"
@@ -35,36 +83,45 @@ struct CompleteTaskIntent: AppIntent {
     }
 }
 
-struct Provider: TimelineProvider {
+// MARK: - Provider
+
+struct Provider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> TasksEntry {
-        TasksEntry(date: Date(), tasks: [], error: nil)
+        TasksEntry(date: Date(), tasks: [], error: nil, listTitle: nil)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (TasksEntry) -> Void) {
-        Task { completion(await entry()) }
+    func snapshot(for configuration: SelectListIntent, in context: Context) async -> TasksEntry {
+        await entry(for: configuration)
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<TasksEntry>) -> Void) {
-        Task {
-            let entry = await entry()
-            completion(Timeline(entries: [entry], policy: .never))
-        }
+    func timeline(for configuration: SelectListIntent, in context: Context) async -> Timeline<TasksEntry> {
+        let entry = await entry(for: configuration)
+        return Timeline(entries: [entry], policy: .never)
     }
 
-    func entry() async -> TasksEntry {
+    func entry(for configuration: SelectListIntent) async -> TasksEntry {
         let store = EKEventStore()
         do {
             try await store.requestFullAccessToReminders()
         } catch {
-            return TasksEntry(date: Date(), tasks: [], error: "Нет доступа")
+            return TasksEntry(date: Date(), tasks: [], error: "Нет доступа", listTitle: nil)
         }
 
-        let lists = store.calendars(for: .reminder)
+        let selectedID = configuration.list?.id
+        let lists: [EKCalendar]
+
+        if let selectedID {
+            let filtered = store.calendars(for: .reminder).filter { $0.calendarIdentifier == selectedID }
+            lists = filtered
+        } else {
+            lists = store.calendars(for: .reminder)
+        }
+
         guard !lists.isEmpty else {
-            return TasksEntry(date: Date(), tasks: [], error: "Нет списков")
+            return TasksEntry(date: Date(), tasks: [], error: "Нет списков", listTitle: nil)
         }
 
-        let predicate = store.predicateForReminders(in: nil)
+        let predicate = store.predicateForReminders(in: lists.isEmpty ? nil : lists)
         let all = await withCheckedContinuation { cont in
             store.fetchReminders(matching: predicate) { all in
                 cont.resume(returning: all ?? [])
@@ -72,9 +129,16 @@ struct Provider: TimelineProvider {
         }
 
         let pending = all.filter { !$0.isCompleted }.prefix(6)
-        return TasksEntry(date: Date(), tasks: Array(pending), error: nil)
+        return TasksEntry(
+            date: Date(),
+            tasks: Array(pending),
+            error: nil,
+            listTitle: configuration.list?.title
+        )
     }
 }
+
+// MARK: - View
 
 struct TodoWidgetsExtensionEntryView: View {
     var entry: TasksEntry
@@ -85,7 +149,7 @@ struct TodoWidgetsExtensionEntryView: View {
                 Image(systemName: "checklist")
                     .font(.caption)
                     .foregroundColor(.green)
-                Text("Задачи")
+                Text(entry.listTitle ?? "Задачи")
                     .font(.caption.bold())
                 Spacer()
             }
@@ -127,15 +191,17 @@ struct TodoWidgetsExtensionEntryView: View {
     }
 }
 
+// MARK: - Widget
+
 struct TodoWidgetsExtension: Widget {
     let kind: String = "TodoWidgetsExtension"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+        AppIntentConfiguration(kind: kind, intent: SelectListIntent.self, provider: Provider()) { entry in
             TodoWidgetsExtensionEntryView(entry: entry)
         }
         .configurationDisplayName("Продуктив")
-        .description("Невыполненные задачи из всех списков")
+        .description("Невыполненные задачи. Нажмите для настройки списка.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
