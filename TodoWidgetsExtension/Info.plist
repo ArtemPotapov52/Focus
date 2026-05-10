@@ -7,5 +7,7 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
+	<key>NSRemindersUsageDescription</key>
+	<string>Widget shows tasks from your reminders</string>
 </dict>
 </plist>
