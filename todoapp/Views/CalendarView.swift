@@ -229,11 +229,11 @@ struct CalendarView: View {
         } label: {
             HStack(alignment: .center, spacing: 16) {
                 VStack(alignment: .trailing, spacing: 1) {
-                    Text(timeString(event.startDate))
+                    Text(timeString(event.startDate, timeZone: event.timeZone))
                         .font(.system(size: 11, weight: .semibold, design: .rounded))
                         .foregroundColor(Color(hex: "444748").opacity(0.6))
                     if !event.isAllDay {
-                        Text(timeString(event.endDate))
+                        Text(timeString(event.endDate, timeZone: event.timeZone))
                             .font(.system(size: 10, weight: .medium, design: .rounded))
                             .foregroundColor(Color(hex: "444748").opacity(0.35))
                     }
@@ -282,9 +282,10 @@ struct CalendarView: View {
 
     // MARK: - Helpers
 
-    private func timeString(_ date: Date) -> String {
+    private func timeString(_ date: Date, timeZone: TimeZone? = nil) -> String {
         let df = DateFormatter()
         df.dateFormat = "HH:mm"
+        if let tz = timeZone { df.timeZone = tz }
         return df.string(from: date)
     }
 
@@ -460,7 +461,9 @@ struct AddEventForm: View {
                     TextField("Location", text: $location)
                     Toggle("All-day", isOn: $isAllDay)
                     DatePicker("Starts", selection: $startDate, displayedComponents: isAllDay ? [.date] : [.date, .hourAndMinute])
+                        .datePickerStyle(.compact)
                     DatePicker("Ends", selection: $endDate, displayedComponents: isAllDay ? [.date] : [.date, .hourAndMinute])
+                        .datePickerStyle(.compact)
                 }
 
                 Section {

@@ -250,12 +250,11 @@ struct TasksView: View {
         let id = task.calendarItemIdentifier
         completingTaskId = id
 
-        // animate circle+sweep (0.5s), then move to completed
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            withAnimation(.smooth(duration: 0.5)) {
-                ek.toggleComplete(task)
+            ek.toggleComplete(task)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                completingTaskId = nil
             }
-            completingTaskId = nil
         }
     }
 
@@ -306,7 +305,7 @@ struct TaskRowView: View {
             // Content
             VStack(alignment: .leading, spacing: 3) {
                 Text(task.title ?? "")
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .font(.system(size: 16, weight: .medium, design: .rounded))
                     .foregroundColor(isCompleted ? Color(hex: "444748").opacity(0.3) : Color(hex: "1a1c1c"))
                     .strikethrough(isCompleted)
                     .lineLimit(2)

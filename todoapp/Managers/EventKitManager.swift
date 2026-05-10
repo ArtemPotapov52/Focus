@@ -96,14 +96,14 @@ final class EventKitManager {
         reminder.title = title
         reminder.calendar = list ?? selectedList ?? store.defaultCalendarForNewReminders()
         try? store.save(reminder, commit: true)
-        fetchReminders()
+        reminders.append(reminder)
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoWidgetsExtension")
     }
 
     func toggleComplete(_ reminder: EKReminder) {
         reminder.isCompleted = !reminder.isCompleted
         try? store.save(reminder, commit: true)
-        fetchReminders()
+        reminders = reminders.map { $0 }
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoWidgetsExtension")
     }
 
