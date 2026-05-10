@@ -8,7 +8,6 @@ struct FocusSessionSetupView: View {
 
     @State private var selectedIDs: Set<String> = []
     @State private var showCalendar = false
-    @State private var showNotes = false
     @State private var selectedMinutes = 25
 
     let timeOptions = [5, 10, 15, 20, 25, 30, 45, 60, 90, 120, 180]
@@ -113,18 +112,6 @@ struct FocusSessionSetupView: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture { showCalendar.toggle() }
-
-                    HStack {
-                        Image(systemName: showNotes ? "checkmark.square.fill" : "square")
-                            .font(.system(size: 18))
-                            .foregroundColor(showNotes ? Color(hex: "1a1c1c") : Color(hex: "c4c7c7"))
-                        Text("Add notes field")
-                            .font(.system(size: 14, design: .rounded))
-                            .foregroundColor(Color(hex: "1a1c1c"))
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture { showNotes.toggle() }
                 }
                 .padding(.horizontal, 20)
 
@@ -162,7 +149,6 @@ struct FocusSessionSetupView: View {
                 Button {
                     session.selectedTasks = allTasks.filter { selectedIDs.contains($0.calendarItemIdentifier) }
                     session.showCalendar = showCalendar
-                    session.showNotes = showNotes
                     session.duration = TimeInterval(selectedMinutes * 60)
                     session.currentIndex = 0
                     session.sessionComplete = false

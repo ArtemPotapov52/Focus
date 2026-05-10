@@ -8,7 +8,6 @@ final class FocusSessionManager {
     var phase: Phase = .setup
     var selectedTasks: [EKReminder] = []
     var showCalendar = false
-    var showNotes = false
     var duration: TimeInterval = 25 * 60
     var currentIndex = 0
     var sessionComplete = false
@@ -40,7 +39,6 @@ final class FocusSessionManager {
         phase = .setup
         selectedTasks = []
         showCalendar = false
-        showNotes = false
         duration = 25 * 60
         currentIndex = 0
         sessionComplete = false
