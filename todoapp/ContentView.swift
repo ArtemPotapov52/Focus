@@ -16,6 +16,9 @@ struct ContentView: View {
 
                 CalendarView(ek: ek)
                     .tag(2)
+
+                ChatView()
+                    .tag(3)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .ignoresSafeArea()
@@ -38,18 +41,20 @@ struct ContentView: View {
                 }
             }
             .overlay(alignment: .bottom) {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Circle().fill(selectedPage == 0 ? Color.white : Color.white.opacity(0.3))
-                        .frame(width: 6, height: 6)
+                        .frame(width: 5, height: 5)
                     Circle().fill(selectedPage == 1 ? Color.white : Color.white.opacity(0.3))
-                        .frame(width: 6, height: 6)
+                        .frame(width: 5, height: 5)
                     Circle().fill(selectedPage == 2 ? Color.white : Color.white.opacity(0.3))
-                        .frame(width: 6, height: 6)
+                        .frame(width: 5, height: 5)
+                    Circle().fill(selectedPage == 3 ? Color.white : Color.white.opacity(0.3))
+                        .frame(width: 5, height: 5)
                 }
                 .padding(.bottom, 12)
             }
             .overlay(alignment: .bottomTrailing) {
-                Text(selectedPage == 0 ? "Заметки" : selectedPage == 1 ? "Задачи" : "Календарь")
+                Text(pageName)
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.4))
                     .padding(.trailing, 16)
@@ -57,6 +62,16 @@ struct ContentView: View {
             }
 
 //            PlayerBarView(music: music)
+        }
+    }
+
+    var pageName: String {
+        switch selectedPage {
+        case 0: return "Заметки"
+        case 1: return "Задачи"
+        case 2: return "Календарь"
+        case 3: return "AI Чат"
+        default: return ""
         }
     }
 }

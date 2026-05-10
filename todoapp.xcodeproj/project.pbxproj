@@ -520,9 +520,9 @@
 				DEVELOPMENT_TEAM = H2M2H28AXG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Productiv shows what is playing and lets you control playback";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Productiv needs calendar access to show and manage your events";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "Productiv needs reminders access to show and manage your tasks";
-				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Productiv shows what is playing and lets you control playback";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -556,9 +556,9 @@
 				DEVELOPMENT_TEAM = H2M2H28AXG;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Productiv shows what is playing and lets you control playback";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Productiv needs calendar access to show and manage your events";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "Productiv needs reminders access to show and manage your tasks";
-				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Productiv shows what is playing and lets you control playback";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
