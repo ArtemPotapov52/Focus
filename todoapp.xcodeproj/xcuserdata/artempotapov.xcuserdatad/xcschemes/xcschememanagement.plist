@@ -12,12 +12,25 @@
 		<key>TodoWidgetsExtensionExtension.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>0</integer>
 		</dict>
 		<key>todoapp.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>0</integer>
+			<integer>1</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>FA0C6DE32FAF8431003612C8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FA0C6E342FAF9ECF003612C8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>
