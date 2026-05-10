@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(EventKitManager.self) var ek
+    @Environment(\.scenePhase) var scenePhase
     @State private var selectedPage = 0
     @State private var music = MusicManager()
     @State private var showFocus = false
@@ -74,6 +75,17 @@ struct ContentView: View {
         }
         .fullScreenCover(isPresented: $showFocus) {
             FocusView()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                if ek.remindersGranted {
+                    ek.fetchLists()
+                    ek.fetchReminders()
+                }
+                if ek.calendarGranted {
+                    ek.fetchEventsAround(Date())
+                }
+            }
         }
     }
 

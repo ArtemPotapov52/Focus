@@ -107,17 +107,24 @@ final class EventKitManager {
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoWidgetsExtension")
     }
 
+    var calendarEventLists: [EKCalendar] {
+        store.calendars(for: .event)
+    }
+
     func fetchEvents(from start: Date, to end: Date) {
         let all = store.events(matching: store.predicateForEvents(withStart: start, end: end, calendars: nil))
         events = all.sorted { $0.startDate < $1.startDate }
     }
 
-    func addEvent(title: String, date: Date) {
+    func createEvent(title: String, location: String? = nil, startDate: Date, endDate: Date, notes: String? = nil, calendar: EKCalendar? = nil, isAllDay: Bool = false) {
         let event = EKEvent(eventStore: store)
         event.title = title
-        event.startDate = date
-        event.endDate = date.addingTimeInterval(3600)
-        event.calendar = store.defaultCalendarForNewEvents ?? store.calendars(for: .event).first
+        event.location = location
+        event.startDate = startDate
+        event.endDate = endDate
+        event.notes = notes
+        event.isAllDay = isAllDay
+        event.calendar = calendar ?? store.defaultCalendarForNewEvents ?? store.calendars(for: .event).first
         try? store.save(event, span: .thisEvent, commit: true)
     }
 

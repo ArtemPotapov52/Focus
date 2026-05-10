@@ -1,45 +1,54 @@
 import SwiftUI
 import EventKit
 
+extension EKEvent: @retroactive Identifiable {
+    public var id: String { eventIdentifier }
+}
+
 struct CalendarView: View {
     @Bindable var ek: EventKitManager
     @State private var currentMonth = Date()
     @State private var selectedDate = Date()
-    @State private var showAdd = false
-    @State private var newEventTitle = ""
+    @State private var showAddEvent = false
+    @State private var selectedEvent: EKEvent?
+    @Namespace private var selectionAnimation
 
     private let cal = Calendar.current
-    private let weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
+    private var weekdays: [String] {
+        let sym = cal.shortStandaloneWeekdaySymbols
+        let s = cal.firstWeekday - 1
+        return (Array(sym[s...]) + Array(sym[..<s])).map { String($0.prefix(1)) }
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottomTrailing) {
+            Color(hex: "f9f9f9").ignoresSafeArea()
+
             if !ek.calendarGranted {
                 noAccessView
             } else {
                 ScrollView {
-                    monthHeader
-                    weekdayRow
-                    dateGrid
-                    selectedDateEvents
+                    VStack(spacing: 0) {
+                        scheduleHeader
+                        weekdayRow
+                        monthGrid
+                        dailyAgenda
+                    }
+                    .padding(.bottom, 100)
                 }
-                .refreshable {
-                    ek.fetchEventsAround(currentMonth)
-                }
-            }
+                .refreshable { ek.fetchEventsAround(currentMonth) }
 
-            if ek.calendarGranted {
                 addButton
             }
         }
-        .onAppear {
-            ek.fetchEventsAround(currentMonth)
+        .sheet(isPresented: $showAddEvent) {
+            AddEventForm(ek: ek, date: selectedDate, currentMonth: $currentMonth, onDone: { showAddEvent = false })
         }
-        .onChange(of: currentMonth) { _, _ in
-            ek.fetchEventsAround(currentMonth)
+        .sheet(item: $selectedEvent) { event in
+            EventDetailView(event: event)
         }
-        .sheet(isPresented: $showAdd) {
-            addEventSheet
-        }
+        .onAppear { ek.fetchEventsAround(currentMonth) }
+        .onChange(of: currentMonth) { _, _ in ek.fetchEventsAround(currentMonth) }
     }
 
     // MARK: - No Access
@@ -49,10 +58,10 @@ struct CalendarView: View {
             Image(systemName: "calendar.badge.exclamationmark")
                 .font(.system(size: 34))
                 .foregroundColor(Color(hex: "444748").opacity(0.3))
-            Text("Нет доступа к календарю")
+            Text("No calendar access")
                 .font(.system(size: 14, design: .rounded))
                 .foregroundColor(Color(hex: "444748").opacity(0.6))
-            Button("Разрешить") {
+            Button("Allow") {
                 Task { await ek.requestAccess() }
             }
             .tint(Color(hex: "1a1c1c"))
@@ -60,33 +69,36 @@ struct CalendarView: View {
         .frame(maxHeight: .infinity)
     }
 
-    // MARK: - Month Header
+    // MARK: - Schedule Header
 
-    private var monthHeader: some View {
+    private var scheduleHeader: some View {
         HStack {
-            Button { moveMonth(-1) } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(Color(hex: "444748").opacity(0.6))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Schedule")
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .foregroundColor(Color(hex: "1a1c1c"))
+                Text(monthYearString)
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .tracking(0.08 * 11)
+                    .foregroundColor(Color(hex: "444748").opacity(0.5))
             }
-
             Spacer()
-
-            Text(monthYearString)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(Color(hex: "1a1c1c"))
-
-            Spacer()
-
-            Button { moveMonth(1) } label: {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(Color(hex: "444748").opacity(0.6))
+            HStack(spacing: 16) {
+                Button { moveMonth(-1) } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Color(hex: "444748").opacity(0.5))
+                }
+                Button { moveMonth(1) } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Color(hex: "444748").opacity(0.5))
+                }
             }
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
-        .padding(.bottom, 8)
+        .padding(.bottom, 16)
     }
 
     // MARK: - Weekday Row
@@ -95,158 +107,157 @@ struct CalendarView: View {
         HStack(spacing: 0) {
             ForEach(weekdays, id: \.self) { day in
                 Text(day)
-                    .font(.caption2.weight(.medium))
-                    .foregroundColor(Color(hex: "444748").opacity(0.4))
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .foregroundColor(Color(hex: "444748").opacity(0.5))
                     .frame(maxWidth: .infinity)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.bottom, 4)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 6)
     }
 
-    // MARK: - Date Grid
+    // MARK: - Month Grid
 
-    private var dateGrid: some View {
+    private var monthGrid: some View {
         let days = monthDays
         let cols = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
 
-        return LazyVGrid(columns: cols, spacing: 6) {
+        return LazyVGrid(columns: cols, spacing: 2) {
             ForEach(0..<days.count, id: \.self) { i in
-                if let date = days[i] {
-                    dateCell(date)
-                } else {
-                    Color.clear
-                        .aspectRatio(1, contentMode: .fill)
-                }
+                dayCell(days[i])
             }
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 16)
     }
 
-    private func dateCell(_ date: Date) -> some View {
+    private func dayCell(_ date: Date) -> some View {
         let isToday = cal.isDateInToday(date)
         let isSelected = cal.isDate(date, inSameDayAs: selectedDate)
         let isCurrentMonth = cal.component(.month, from: date) == cal.component(.month, from: currentMonth)
-        let hasEvents = events(for: date).isEmpty == false
+        let hasEvents = !events(for: date).isEmpty
 
         return Button {
-            selectedDate = date
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                selectedDate = date
+            }
         } label: {
             ZStack {
                 if isSelected {
                     Circle()
                         .fill(Color(hex: "1a1c1c"))
-                        .frame(width: 34, height: 34)
+                        .frame(width: 28, height: 28)
+                        .matchedGeometryEffect(id: "selected", in: selectionAnimation)
                 } else if isToday {
                     Circle()
                         .stroke(Color(hex: "1a1c1c"), lineWidth: 1.5)
-                        .frame(width: 34, height: 34)
+                        .frame(width: 28, height: 28)
                 }
 
                 Text("\(cal.component(.day, from: date))")
-                    .font(.callout.weight(isSelected ? .bold : .regular))
-                    .foregroundColor(isSelected ? .white : isCurrentMonth ? Color(hex: "1a1c1c") : Color(hex: "444748").opacity(0.25))
-            }
-            .frame(height: 38)
-            .overlay(alignment: .bottom) {
-                if hasEvents && !isSelected {
+                    .font(.system(size: 12, weight: isSelected || isToday ? .bold : .medium, design: .rounded))
+                    .foregroundColor(
+                        isSelected ? .white :
+                        isCurrentMonth ? Color(hex: "1a1c1c") :
+                        Color(hex: "444748").opacity(0.25)
+                    )
+
+                if hasEvents && !isToday {
                     Circle()
-                        .fill(Color(hex: "1a1c1c").opacity(0.4))
+                        .fill(Color(hex: "1a1c1c"))
                         .frame(width: 4, height: 4)
-                        .offset(y: -2)
+                        .offset(y: 11)
                 }
             }
+            .frame(height: 34)
+            .frame(maxWidth: .infinity)
         }
     }
 
-    // MARK: - Events for Selected Date
+    // MARK: - Daily Agenda
 
-    private var selectedDateEvents: some View {
+    private var dailyAgenda: some View {
         let dayEvents = events(for: selectedDate)
-        let dayTasks = tasks(for: selectedDate)
 
         return VStack(alignment: .leading, spacing: 0) {
             Divider()
                 .background(Color(hex: "c4c7c7").opacity(0.3))
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 20)
                 .padding(.vertical, 12)
 
-            Text(formattedSelectedDate)
-                .font(.subheadline.weight(.semibold))
-                .foregroundColor(Color(hex: "444748").opacity(0.7))
-                .padding(.horizontal, 20)
-                .padding(.bottom, 8)
-
-            if dayEvents.isEmpty && dayTasks.isEmpty {
-                Text("Нет событий и задач")
-                    .font(.subheadline)
-                    .foregroundColor(Color(hex: "444748").opacity(0.3))
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 120)
-            } else {
-                ForEach(dayEvents, id: \.eventIdentifier) { event in
-                    eventRow(event)
-                }
-                ForEach(dayTasks, id: \.calendarItemIdentifier) { task in
-                    taskRow(task)
-                }
-                .padding(.bottom, 120)
-            }
-        }
-    }
-
-    private func eventRow(_ event: EKEvent) -> some View {
-        HStack(spacing: 10) {
-            VStack(spacing: 2) {
-                Text(event.startDate, style: .time)
-                    .font(.caption.bold())
-                    .foregroundColor(Color(hex: "1a1c1c"))
-                Text(event.endDate, style: .time)
-                    .font(.caption2)
-                    .foregroundColor(Color(hex: "444748").opacity(0.5))
-            }
-            .frame(width: 58)
-
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Color(event.calendar.cgColor))
-                .frame(width: 3)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(event.title ?? "Без названия")
-                    .font(.subheadline.bold())
-                    .foregroundColor(Color(hex: "1a1c1c"))
-                if let loc = event.location, !loc.isEmpty {
-                    Text(loc)
-                        .font(.caption)
-                        .foregroundColor(Color(hex: "444748").opacity(0.5))
-                }
-            }
-
-            Spacer()
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 6)
-    }
-
-    private func taskRow(_ task: EKReminder) -> some View {
-        Button {
-            ek.toggleComplete(task)
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "circle")
-                    .font(.caption)
-                    .foregroundColor(Color(hex: "444748").opacity(0.5))
-                    .frame(width: 12)
-
-                Text(task.title ?? "")
-                    .font(.subheadline)
-                    .foregroundColor(Color(hex: "1a1c1c").opacity(0.8))
-                    .strikethrough(task.isCompleted)
-
+            HStack {
+                Text(formattedSelectedDate)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color(hex: "444748").opacity(0.7))
                 Spacer()
+                Text("\(dayEvents.count) events")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundColor(Color(hex: "444748").opacity(0.4))
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 4)
+            .padding(.bottom, 12)
+
+            if dayEvents.isEmpty {
+                Text("No events for this day")
+                    .font(.system(size: 14, design: .rounded))
+                    .foregroundColor(Color(hex: "444748").opacity(0.3))
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 8)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(dayEvents, id: \.eventIdentifier) { event in
+                        agendaEventRow(event)
+                    }
+                }
+            }
+        }
+        .padding(.bottom, 16)
+    }
+
+    private func agendaEventRow(_ event: EKEvent) -> some View {
+        let now = Date()
+        let bgColor: Color
+        if event.endDate < now {
+            bgColor = Color(hex: "f0f7f0")
+        } else if event.startDate <= now && event.endDate >= now {
+            bgColor = Color(hex: "eef6ff")
+        } else {
+            bgColor = Color(hex: "fff5f5")
+        }
+
+        return Button {
+            selectedEvent = event
+        } label: {
+            HStack(alignment: .center, spacing: 16) {
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(timeString(event.startDate))
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color(hex: "444748").opacity(0.6))
+                    if !event.isAllDay {
+                        Text(timeString(event.endDate))
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .foregroundColor(Color(hex: "444748").opacity(0.35))
+                    }
+                }
+                .frame(width: 42)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(event.title ?? "Untitled")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color(hex: "1a1c1c"))
+                        .multilineTextAlignment(.leading)
+                    if let loc = event.location, !loc.isEmpty {
+                        Text(loc)
+                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .foregroundColor(Color(hex: "444748").opacity(0.8))
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(bgColor)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+            .padding(.horizontal, 20)
         }
         .buttonStyle(.plain)
     }
@@ -254,115 +265,257 @@ struct CalendarView: View {
     // MARK: - Add Button
 
     private var addButton: some View {
-        VStack {
-            Spacer()
-            HStack {
-                Spacer()
-                Button {
-                    newEventTitle = ""
-                    showAdd = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(Color(hex: "ffffff"))
-                        .frame(width: 48, height: 48)
-                        .background(Color(hex: "1a1c1c"))
-                        .clipShape(Circle())
-                        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-                }
-                .padding(.trailing, 20)
-                .padding(.bottom, 80)
-            }
+        Button {
+            showAddEvent = true
+        } label: {
+            Image(systemName: "plus")
+                .font(.system(size: 22, weight: .medium))
+                .foregroundColor(.white)
+                .frame(width: 48, height: 48)
+                .background(Color(hex: "1a1c1c"))
+                .clipShape(Circle())
+                .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
         }
-    }
-
-    // MARK: - Add Event Sheet
-
-    private var addEventSheet: some View {
-        VStack(spacing: 20) {
-            Text("Новое событие")
-                .font(.title3.weight(.bold))
-
-            TextField("Название события", text: $newEventTitle)
-                .textFieldStyle(.plain)
-                .font(.body)
-                .padding()
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-            Button {
-                let t = newEventTitle.trimmingCharacters(in: .whitespaces)
-                if !t.isEmpty {
-                    ek.addEvent(title: t, date: selectedDate)
-                    ek.fetchEventsAround(currentMonth)
-                }
-                showAdd = false
-            } label: {
-                Text("Добавить")
-                    .font(.body.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(newEventTitle.trimmingCharacters(in: .whitespaces).isEmpty ? Color.gray.opacity(0.3) : Color.black)
-                    .foregroundColor(newEventTitle.trimmingCharacters(in: .whitespaces).isEmpty ? .gray : .white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .disabled(newEventTitle.trimmingCharacters(in: .whitespaces).isEmpty)
-
-            Spacer()
-        }
-        .padding(24)
-        .padding(.top, 20)
-        .presentationDetents([.height(220)])
+        .padding(.trailing, 20)
+        .padding(.bottom, 80)
     }
 
     // MARK: - Helpers
 
+    private func timeString(_ date: Date) -> String {
+        let df = DateFormatter()
+        df.dateFormat = "HH:mm"
+        return df.string(from: date)
+    }
+
     private var monthYearString: String {
         let df = DateFormatter()
-        df.locale = Locale(identifier: "ru_RU")
-        df.dateFormat = "LLLL yyyy"
-        return df.string(from: currentMonth).capitalized
+        df.dateFormat = "MMMM yyyy"
+        return df.string(from: currentMonth)
     }
 
     private var formattedSelectedDate: String {
         let df = DateFormatter()
-        df.locale = Locale(identifier: "ru_RU")
-        df.dateFormat = "d MMMM, EEEE"
-        return df.string(from: selectedDate).capitalized
+        df.dateFormat = "EEEE, MMMM d"
+        return df.string(from: selectedDate)
     }
 
     private func moveMonth(_ offset: Int) {
         if let m = cal.date(byAdding: .month, value: offset, to: currentMonth) {
-            currentMonth = m
+            withAnimation(.easeInOut(duration: 0.25)) {
+                currentMonth = m
+            }
         }
     }
 
-    private var monthDays: [Date?] {
+    private var monthDays: [Date] {
         let start = cal.date(from: cal.dateComponents([.year, .month], from: currentMonth))!
         let range = cal.range(of: .day, in: .month, for: start)!
-        let firstWeekday = cal.component(.weekday, from: start)
-        let offset = (firstWeekday + 5) % 7
+        let first = cal.component(.weekday, from: start)
+        let offset = (first + 7 - cal.firstWeekday) % 7
 
-        var days: [Date?] = []
-        for _ in 0..<offset { days.append(nil) }
-        for day in range {
-            if let d = cal.date(byAdding: .day, value: day - 1, to: start) {
+        var days: [Date] = []
+
+        if offset > 0 {
+            for i in (1...offset).reversed() {
+                if let d = cal.date(byAdding: .day, value: -i, to: start) {
+                    days.append(d)
+                }
+            }
+        }
+
+        for day in 0..<range.count {
+            if let d = cal.date(byAdding: .day, value: day, to: start) {
                 days.append(d)
             }
         }
+
         let remaining = (7 - days.count % 7) % 7
-        for _ in 0..<remaining { days.append(nil) }
+        if remaining > 0, let last = days.last {
+            for i in 1...remaining {
+                if let d = cal.date(byAdding: .day, value: i, to: last) {
+                    days.append(d)
+                }
+            }
+        }
+
         return days
     }
 
     private func events(for date: Date) -> [EKEvent] {
         ek.events.filter { cal.isDate($0.startDate, inSameDayAs: date) }
     }
+}
 
-    private func tasks(for date: Date) -> [EKReminder] {
-        ek.reminders.filter { rem in
-            guard let due = rem.dueDateComponents?.date else { return false }
-            return cal.isDate(due, inSameDayAs: date)
+// MARK: - Event Detail View
+
+struct EventDetailView: View {
+    let event: EKEvent
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    HStack {
+                        Text("Title")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(event.title ?? "Untitled")
+                            .multilineTextAlignment(.trailing)
+                    }
+
+                    if let loc = event.location, !loc.isEmpty {
+                        HStack {
+                            Text("Location")
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text(loc)
+                                .multilineTextAlignment(.trailing)
+                        }
+                    }
+
+                    HStack {
+                        Text("All-day")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(event.isAllDay ? "Yes" : "No")
+                    }
+
+                    HStack {
+                        Text("Starts")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(event.startDate, style: event.isAllDay ? .date : .time)
+                    }
+
+                    HStack {
+                        Text("Ends")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(event.endDate, style: event.isAllDay ? .date : .time)
+                    }
+
+                    HStack {
+                        Text("Calendar")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(Color(event.calendar.cgColor))
+                                .frame(width: 8, height: 8)
+                            Text(event.calendar.title)
+                        }
+                    }
+                }
+
+                if let notes = event.notes, !notes.isEmpty {
+                    Section("Notes") {
+                        Text(notes)
+                    }
+                }
+            }
+            .navigationTitle("Event Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Add Event Form
+
+struct AddEventForm: View {
+    @Bindable var ek: EventKitManager
+    let date: Date
+    @Binding var currentMonth: Date
+    let onDone: () -> Void
+
+    @State private var title = ""
+    @State private var location = ""
+    @State private var startDate: Date
+    @State private var endDate: Date
+    @State private var notes = ""
+    @State private var isAllDay = false
+    @State private var selectedCalendar: EKCalendar?
+
+    init(ek: EventKitManager, date: Date, currentMonth: Binding<Date>, onDone: @escaping () -> Void) {
+        self.ek = ek
+        self.date = date
+        self._currentMonth = currentMonth
+        self.onDone = onDone
+        let start = Calendar.current.date(bySettingHour: 10, minute: 0, second: 0, of: date) ?? date
+        self._startDate = State(initialValue: start)
+        self._endDate = State(initialValue: start.addingTimeInterval(3600))
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Title", text: $title)
+                    TextField("Location", text: $location)
+                    Toggle("All-day", isOn: $isAllDay)
+                    DatePicker("Starts", selection: $startDate, displayedComponents: isAllDay ? [.date] : [.date, .hourAndMinute])
+                    DatePicker("Ends", selection: $endDate, displayedComponents: isAllDay ? [.date] : [.date, .hourAndMinute])
+                }
+
+                Section {
+                    Picker("Calendar", selection: $selectedCalendar) {
+                        ForEach(ek.calendarEventLists, id: \.calendarIdentifier) { cal in
+                            HStack {
+                                Circle()
+                                    .fill(Color(cal.cgColor))
+                                    .frame(width: 10, height: 10)
+                                Text(cal.title)
+                            }
+                            .tag(cal as EKCalendar?)
+                        }
+                    }
+                }
+
+                Section {
+                    ZStack(alignment: .topLeading) {
+                        if notes.isEmpty {
+                            Text("Notes")
+                                .foregroundColor(.secondary)
+                                .padding(.top, 8)
+                                .padding(.leading, 4)
+                        }
+                        TextEditor(text: $notes)
+                            .frame(minHeight: 80)
+                    }
+                }
+            }
+            .navigationTitle("New Event")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { onDone() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Add") {
+                        let t = title.trimmingCharacters(in: .whitespaces)
+                        if !t.isEmpty {
+                            ek.createEvent(
+                                title: t,
+                                location: location.trimmingCharacters(in: .whitespaces).isEmpty ? nil : location,
+                                startDate: startDate,
+                                endDate: endDate,
+                                notes: notes.trimmingCharacters(in: .whitespaces).isEmpty ? nil : notes,
+                                calendar: selectedCalendar ?? ek.calendarEventLists.first,
+                                isAllDay: isAllDay
+                            )
+                            ek.fetchEventsAround(currentMonth)
+                        }
+                        onDone()
+                    }
+                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
         }
     }
 }
