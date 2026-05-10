@@ -7,6 +7,8 @@ struct ContentView: View {
     @State private var music = MusicManager()
     @State private var showFocus = false
     @State private var showProfile = false
+    @State private var showFocusSession = false
+    @State private var focusSession = FocusSessionManager()
     @State private var lastSceneRefresh = Date()
     @State private var keyboardVisible = false
     @AppStorage("ai_mode") private var aiMode = "focus"
@@ -53,6 +55,15 @@ struct ContentView: View {
                             Image(systemName: "circle.dotted")
                                 .font(.system(size: 18))
                                 .foregroundColor(Color(hex: "1a1c1c").opacity(0.7))
+                        }
+                        Button { showFocusSession = true } label: {
+                            Text("Session")
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .foregroundColor(Color(hex: "1a1c1c"))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(Color(hex: "eeeeee"))
+                                .clipShape(Capsule())
                         }
                         AvatarIcon()
                     }
@@ -105,6 +116,9 @@ struct ContentView: View {
         .fullScreenCover(isPresented: $showProfile) {
             ProfileView()
         }
+        .fullScreenCover(isPresented: $showFocusSession) {
+            FocusSessionFlow(ek: ek, session: focusSession, isPresented: $showFocusSession)
+        }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active, Date().timeIntervalSince(lastSceneRefresh) > 2 else { return }
             lastSceneRefresh = Date()
@@ -156,5 +170,30 @@ struct AvatarIcon: View {
         Image(systemName: "person.circle")
             .font(.system(size: 22))
             .foregroundColor(Color(hex: "1a1c1c"))
+    }
+}
+
+struct FocusSessionFlow: View {
+    @Bindable var ek: EventKitManager
+    let session: FocusSessionManager
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        Group {
+            switch session.phase {
+            case .idle, .setup:
+                FocusSessionSetupView(ek: ek, session: session)
+            case .active:
+                FocusSessionActiveView(ek: ek, session: session, onExit: {
+                    session.reset()
+                    isPresented = false
+                })
+            }
+        }
+        .onChange(of: isPresented) { _, shown in
+            if !shown {
+                session.reset()
+            }
+        }
     }
 }
