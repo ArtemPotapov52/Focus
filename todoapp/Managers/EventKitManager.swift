@@ -74,8 +74,7 @@ final class EventKitManager {
     }
 
     func fetchReminders() {
-        guard let list = selectedList else { return }
-        store.fetchReminders(matching: store.predicateForReminders(in: [list])) { [weak self] all in
+        store.fetchReminders(matching: store.predicateForReminders(in: nil)) { [weak self] all in
             guard let self else { return }
             if all == nil {
                 DispatchQueue.main.async {
@@ -84,7 +83,7 @@ final class EventKitManager {
                 }
                 return
             }
-            let sorted = all!.filter { !$0.isCompleted }.sorted { ($0.dueDateComponents?.date ?? .distantFuture) < ($1.dueDateComponents?.date ?? .distantFuture) }
+            let sorted = all!.sorted { ($0.dueDateComponents?.date ?? .distantFuture) < ($1.dueDateComponents?.date ?? .distantFuture) }
             DispatchQueue.main.async {
                 self.reminders = sorted
                 self.remindersError = false

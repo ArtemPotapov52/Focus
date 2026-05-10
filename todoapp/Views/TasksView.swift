@@ -3,155 +3,523 @@ import EventKit
 
 struct TasksView: View {
     @Bindable var ek: EventKitManager
-    @State private var showQuickAdd = false
-    @State private var newTaskTitle = ""
+    @State private var showAdd = false
+    @State private var selectedCategory: EKCalendar?
+    @State private var completingTaskId: String?
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
+            Color(hex: "f9f9f9").ignoresSafeArea()
+
             VStack(spacing: 0) {
-                if !ek.remindersGranted {
-                    VStack(spacing: 12) {
-                        Image(systemName: "bell.badge")
-                            .font(.system(size: 40))
-                            .foregroundColor(.white.opacity(0.5))
-                        Text("Нет доступа к напоминаниям")
-                            .foregroundColor(.white.opacity(0.6))
-                        Button("Разрешить") {
-                            Task { await ek.requestAccess() }
-                        }
-                        .buttonStyle(.borderedProminent)
+                // Top App Bar
+                HStack {
+                    HStack(spacing: 6) {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .font(.system(size: 18))
+                            .foregroundColor(Color(hex: "1a1c1c"))
+                        Text("Focus")
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundColor(Color(hex: "1a1c1c"))
                     }
-                    .frame(maxHeight: .infinity)
-                } else if ek.remindersError && ek.reminders.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "exclamationmark.icloud")
-                            .font(.system(size: 40))
-                            .foregroundColor(.orange)
-                        Text("Не удалось загрузить задачи")
-                            .foregroundColor(.white.opacity(0.7))
-                        Button("Повторить") {
-                            ek.refresh()
+                    Spacer()
+                    Image(systemName: "person.circle")
+                        .font(.system(size: 22))
+                        .foregroundColor(Color(hex: "1a1c1c"))
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 8)
+                .background(Color(hex: "f9f9f9"))
+
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Today Header + Category Picker
+                        HStack(alignment: .firstTextBaseline) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Today")
+                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .foregroundColor(Color(hex: "1a1c1c"))
+
+                                Text(todayString.uppercased())
+                                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                                    .tracking(0.08 * 11)
+                                    .foregroundColor(Color(hex: "444748").opacity(0.5))
+                            }
+
+                            Spacer()
+
+                            Menu {
+                                Button { selectedCategory = nil } label: {
+                                    HStack {
+                                        Text("All")
+                                        if selectedCategory == nil { Image(systemName: "checkmark") }
+                                    }
+                                }
+                                ForEach(ek.reminderLists, id: \.calendarIdentifier) { list in
+                                    Button { selectedCategory = list } label: {
+                                        HStack {
+                                            Text(list.title)
+                                            if selectedCategory?.calendarIdentifier == list.calendarIdentifier {
+                                                Image(systemName: "checkmark")
+                                            }
+                                        }
+                                    }
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Text(selectedCategory?.title ?? "All")
+                                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                                        .foregroundColor(Color(hex: "444748").opacity(0.6))
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 10, weight: .medium))
+                                        .foregroundColor(Color(hex: "444748").opacity(0.4))
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(Color(hex: "eeeeee"))
+                                .clipShape(Capsule())
+                            }
                         }
-                        .buttonStyle(.borderedProminent)
+                        .padding(.top, 8)
+                        .padding(.bottom, 24)
+                        .padding(.horizontal, 20)
+
+                        if !ek.remindersGranted {
+                            noAccessView
+                        } else {
+                            let all = filteredTasks
+                            if all.isEmpty {
+                                emptyView
+                            } else {
+                                let incomplete = all.filter { !$0.isCompleted }
+                                let completed = all.filter { $0.isCompleted }
+                                    .sorted { ($0.completionDate ?? .distantPast) > ($1.completionDate ?? .distantPast) }
+
+                                let morning = tasksInRange(incomplete, 0..<12)
+                                let afternoon = tasksInRange(incomplete, 12..<17)
+                                let evening = tasksInRange(incomplete, 17..<24)
+
+                                if !morning.isEmpty {
+                                    taskSection(title: "MORNING", count: morning.count, tasks: morning)
+                                }
+                                if !afternoon.isEmpty {
+                                    taskSection(title: "AFTERNOON", count: afternoon.count, tasks: afternoon)
+                                }
+                                if !evening.isEmpty {
+                                    taskSection(title: "EVENING", count: evening.count, tasks: evening)
+                                }
+                                if !completed.isEmpty {
+                                    completedSection(completed)
+                                }
+                            }
+                        }
                     }
-                    .frame(maxHeight: .infinity)
+                    .padding(.bottom, 100)
+                }
+                .animation(.smooth(duration: 0.5), value: ek.reminders.filter { $0.isCompleted }.count)
+            }
+
+            // FAB
+            Button {
+                showAdd = true
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(width: 48, height: 48)
+                    .background(Color(hex: "1a1c1c"))
+                    .clipShape(Circle())
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+            }
+            .padding(.trailing, 20)
+            .padding(.bottom, 80)
+        }
+        .sheet(isPresented: $showAdd) {
+            AddTaskView(ek: ek, defaultList: selectedCategory, selectedCategory: $selectedCategory)
+        }
+    }
+
+    // MARK: - No Access
+
+    private var noAccessView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "bell.badge")
+                .font(.system(size: 34))
+                .foregroundColor(Color(hex: "444748").opacity(0.5))
+            Text("Нет доступа к напоминаниям")
+                .font(.system(size: 14, design: .rounded))
+                .foregroundColor(Color(hex: "444748").opacity(0.6))
+            Button("Разрешить") {
+                Task { await ek.requestAccess() }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color(hex: "1a1c1c"))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 60)
+    }
+
+    private var emptyView: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "checklist")
+                .font(.system(size: 34))
+                .foregroundColor(Color(hex: "444748").opacity(0.3))
+            Text("Нет задач")
+                .font(.system(size: 14, design: .rounded))
+                .foregroundColor(Color(hex: "444748").opacity(0.5))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 60)
+    }
+
+    // MARK: - Filter
+
+    private var filteredTasks: [EKReminder] {
+        if let cat = selectedCategory {
+            return ek.reminders.filter { $0.calendar?.calendarIdentifier == cat.calendarIdentifier }
+        }
+        return ek.reminders
+    }
+
+    private func tasksInRange(_ tasks: [EKReminder], _ range: Range<Int>) -> [EKReminder] {
+        tasks.filter { task in
+            guard let d = task.dueDateComponents?.date else { return range == 0..<12 }
+            let h = Calendar.current.component(.hour, from: d)
+            return range.contains(h)
+        }
+    }
+
+    // MARK: - Sections
+
+    private func taskSection(title: String, count: Int, tasks: [EKReminder]) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(title)
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .tracking(0.08 * 10)
+                    .foregroundColor(Color(hex: "444748").opacity(0.6))
+
+                Spacer()
+
+                Text("\(count) TASKS")
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundColor(Color(hex: "444748").opacity(0.3))
+            }
+            .padding(.bottom, 4)
+            .padding(.horizontal, 20)
+
+            VStack(spacing: 0) {
+                ForEach(tasks, id: \.calendarItemIdentifier) { task in
+                    TaskRowView(
+                        task: task,
+                        isCompleted: false,
+                        ek: ek,
+                        isAnimating: completingTaskId == task.calendarItemIdentifier,
+                        onComplete: { startComplete(task) }
+                    )
+                    .padding(.vertical, 6)
+                    .transition(.asymmetric(
+                        insertion: .identity,
+                        removal: .move(edge: .top).combined(with: .opacity)
+                    ))
+                }
+            }
+        }
+        .padding(.bottom, 16)
+    }
+
+    private func completedSection(_ tasks: [EKReminder]) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("COMPLETED")
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .tracking(0.08 * 10)
+                    .foregroundColor(Color(hex: "444748").opacity(0.4))
+
+                Spacer()
+
+                Text("\(tasks.count) TASKS")
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundColor(Color(hex: "444748").opacity(0.2))
+            }
+            .padding(.bottom, 4)
+            .padding(.horizontal, 20)
+
+            VStack(spacing: 0) {
+                ForEach(tasks, id: \.calendarItemIdentifier) { task in
+                    TaskRowView(
+                        task: task,
+                        isCompleted: true,
+                        ek: ek,
+                        isAnimating: false,
+                        onComplete: {}
+                    )
+                    .padding(.vertical, 6)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .bottom).combined(with: .opacity),
+                        removal: .identity
+                    ))
+                }
+            }
+        }
+        .padding(.bottom, 16)
+    }
+
+    private func startComplete(_ task: EKReminder) {
+        let id = task.calendarItemIdentifier
+        completingTaskId = id
+
+        // animate circle+sweep (0.5s), then move to completed
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation(.smooth(duration: 0.5)) {
+                ek.toggleComplete(task)
+            }
+            completingTaskId = nil
+        }
+    }
+
+    // MARK: - Helpers
+
+    private var todayString: String {
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "en_US")
+        df.dateFormat = "MMMM dd, yyyy"
+        return df.string(from: Date())
+    }
+}
+
+// MARK: - Task Row
+
+struct TaskRowView: View {
+    let task: EKReminder
+    let isCompleted: Bool
+    let ek: EventKitManager
+    let isAnimating: Bool
+    let onComplete: () -> Void
+
+    @State private var sweepWidth: CGFloat = 0
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            // Circle
+            Button {
+                if !isCompleted { onComplete() }
+            } label: {
+                if isCompleted || isAnimating {
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: "1a1c1c"))
+                            .frame(width: 22, height: 22)
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundColor(.white)
+                    }
                 } else {
-                    Picker("Список", selection: Bindable(ek).selectedList) {
+                    Circle()
+                        .stroke(Color(hex: "747878").opacity(0.5), lineWidth: 1.5)
+                        .frame(width: 22, height: 22)
+                }
+            }
+            .padding(.top, 3)
+
+            // Content
+            VStack(alignment: .leading, spacing: 3) {
+                Text(task.title ?? "")
+                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .foregroundColor(isCompleted ? Color(hex: "444748").opacity(0.3) : Color(hex: "1a1c1c"))
+                    .strikethrough(isCompleted)
+                    .lineLimit(2)
+                    .overlay(alignment: .leading) {
+                        if isAnimating {
+                            GeometryReader { geo in
+                                Rectangle()
+                                    .fill(Color(hex: "747878").opacity(0.5))
+                                    .frame(width: geo.size.width * sweepWidth, height: 1.5)
+                                    .offset(y: geo.size.height / 2 - 0.75)
+                            }
+                        }
+                    }
+
+                HStack(spacing: 6) {
+                    if let due = task.dueDateComponents?.date {
+                        Text(relativeDateString(due))
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundColor(isCompleted ? Color(hex: "444748").opacity(0.15) : Color(hex: "444748").opacity(0.6))
+                    }
+                    if let list = task.calendar {
+                        Text(list.title)
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundColor(isCompleted ? Color(hex: "444748").opacity(0.1) : Color(hex: "444748").opacity(0.35))
+                    }
+                }
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 2)
+        .opacity(isAnimating ? 0.6 : 1)
+        .onChange(of: isAnimating) { _, new in
+            if new {
+                withAnimation(.easeInOut(duration: 0.35).delay(0.05)) {
+                    sweepWidth = 1
+                }
+            } else {
+                sweepWidth = 0
+            }
+        }
+    }
+
+    private func relativeDateString(_ date: Date) -> String {
+        let cal = Calendar.current
+        if cal.isDateInToday(date) {
+            let df = DateFormatter()
+            df.locale = Locale(identifier: "en_US")
+            df.dateFormat = "hh:mm a"
+            return df.string(from: date)
+        }
+        if cal.isDateInYesterday(date) {
+            return "Yesterday"
+        }
+        if cal.isDate(date, equalTo: Date(), toGranularity: .weekOfYear) {
+            let df = DateFormatter()
+            df.locale = Locale(identifier: "en_US")
+            df.dateFormat = "EEEE"
+            return df.string(from: date)
+        }
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "en_US")
+        df.dateFormat = "MMM d"
+        return df.string(from: date)
+    }
+}
+
+// MARK: - Add Task Sheet
+
+struct AddTaskView: View {
+    @Environment(\.dismiss) var dismiss
+    @Bindable var ek: EventKitManager
+    var defaultList: EKCalendar?
+    @Binding var selectedCategory: EKCalendar?
+
+    @State private var title = ""
+    @State private var dueDate = Date().addingTimeInterval(3600)
+    @State private var hasDueDate = false
+    @State private var selectedList: EKCalendar?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button("Cancel") { dismiss() }
+                    .font(.system(size: 15, design: .rounded))
+                    .foregroundColor(Color(hex: "444748").opacity(0.6))
+
+                Spacer()
+
+                Text("New Task")
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color(hex: "1a1c1c"))
+
+                Spacer()
+
+                Button("Add") {
+                    let t = title.trimmingCharacters(in: .whitespaces)
+                    if !t.isEmpty {
+                        let list = selectedList ?? defaultList ?? ek.selectedList
+                        ek.addReminder(title: t, list: list)
+                        if let l = list { selectedCategory = l }
+                    }
+                    dismiss()
+                }
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundColor(Color(hex: "1a1c1c"))
+                .opacity(title.trimmingCharacters(in: .whitespaces).isEmpty ? 0.4 : 1)
+                .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 24)
+
+            TextField("What do you need to do?", text: $title)
+                .font(.system(size: 17, design: .rounded))
+                .foregroundColor(Color(hex: "1a1c1c"))
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(Color(hex: "eeeeee"))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
+
+            Button {
+                withAnimation(.smooth) { hasDueDate.toggle() }
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: hasDueDate ? "calendar.circle.fill" : "calendar.circle")
+                        .font(.system(size: 20))
+                        .foregroundColor(Color(hex: "1a1c1c"))
+                    Text("Due Date")
+                        .font(.system(size: 15, design: .rounded))
+                        .foregroundColor(Color(hex: "1a1c1c"))
+                    Spacer()
+                    if hasDueDate {
+                        Image(systemName: "chevron.up")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color(hex: "444748").opacity(0.4))
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+            }
+
+            if hasDueDate {
+                DatePicker("", selection: $dueDate, displayedComponents: [.date, .hourAndMinute])
+                    .datePickerStyle(.graphical)
+                    .padding(.horizontal, 20)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
+            if !ek.reminderLists.isEmpty {
+                HStack(spacing: 10) {
+                    Image(systemName: "list.bullet.circle")
+                        .font(.system(size: 20))
+                        .foregroundColor(Color(hex: "1a1c1c"))
+                    Picker("List", selection: $selectedList) {
+                        Text("Default").tag(nil as EKCalendar?)
                         ForEach(ek.reminderLists, id: \.calendarIdentifier) { list in
                             Text(list.title).tag(list as EKCalendar?)
                         }
                     }
                     .pickerStyle(.menu)
-                    .tint(.white)
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-
-                    if ek.isLoading {
-                        Spacer()
-                        ProgressView()
-                            .tint(.white)
-                        Spacer()
-                    } else {
-                        ScrollView {
-                            LazyVStack(spacing: 8) {
-                                ForEach(ek.reminders, id: \.calendarItemIdentifier) { reminder in
-                                    Button {
-                                        ek.toggleComplete(reminder)
-                                    } label: {
-                                        HStack(spacing: 12) {
-                                            Image(systemName: "circle")
-                                                .font(.title2)
-                                                .foregroundColor(.white.opacity(0.6))
-
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                Text(reminder.title ?? "Без названия")
-                                                    .foregroundColor(.white)
-                                                    .font(.body)
-                                                    .multilineTextAlignment(.leading)
-
-                                                if let due = reminder.dueDateComponents?.date {
-                                                    Text(due, style: .date)
-                                                        .font(.caption)
-                                                        .foregroundColor(.white.opacity(0.5))
-                                                }
-                                            }
-
-                                            Spacer()
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                    }
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 12)
-                                    .frame(maxWidth: .infinity)
-                                    .background(.ultraThinMaterial.opacity(0.15))
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    .padding(.horizontal, 16)
-                                    .buttonStyle(.plain)
-                                    .contentShape(Rectangle())
-                                }
-                            }
-                            .padding(.vertical, 4)
-                        }
-                        .refreshable {
-                            ek.refresh()
-                        }
-                    }
+                    .tint(Color(hex: "1a1c1c"))
+                    .font(.system(size: 15, design: .rounded))
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
             }
-
-            Button {
-                newTaskTitle = ""
-                showQuickAdd = true
-            } label: {
-                Image(systemName: "plus")
-                    .font(.title2.weight(.semibold))
-                    .foregroundColor(.black)
-                    .frame(width: 54, height: 54)
-                    .background(Color.white)
-                    .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.2), radius: 8)
-            }
-            .padding(.trailing, 20)
-            .padding(.bottom, 40)
-        }
-        .sheet(isPresented: $showQuickAdd) {
-            quickAddSheet
-        }
-    }
-
-    private var quickAddSheet: some View {
-        VStack(spacing: 20) {
-            Text("Новая задача")
-                .font(.title3.weight(.bold))
-
-            TextField("Что нужно сделать?", text: $newTaskTitle)
-                .textFieldStyle(.plain)
-                .font(.body)
-                .padding()
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-            Button {
-                let title = newTaskTitle.trimmingCharacters(in: .whitespaces)
-                if !title.isEmpty {
-                    ek.addReminder(title: title)
-                }
-                showQuickAdd = false
-            } label: {
-                Text("Добавить")
-                    .font(.body.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(!newTaskTitle.trimmingCharacters(in: .whitespaces).isEmpty ? Color.black : Color.gray.opacity(0.3))
-                    .foregroundColor(!newTaskTitle.trimmingCharacters(in: .whitespaces).isEmpty ? .white : .gray)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .disabled(newTaskTitle.trimmingCharacters(in: .whitespaces).isEmpty)
 
             Spacer()
         }
-        .padding(24)
-        .padding(.top, 20)
-        .presentationDetents([.height(220)])
+        .presentationDetents([.large])
+        .onAppear {
+            selectedList = defaultList ?? ek.selectedList
+        }
+    }
+}
+
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 6:
+            (a, r, g, b) = (255, (int >> 16) & 0xFF, (int >> 8) & 0xFF, int & 0xFF)
+        case 8:
+            (a, r, g, b) = ((int >> 24) & 0xFF, (int >> 16) & 0xFF, (int >> 8) & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (255, 0, 0, 0)
+        }
+        self.init(.sRGB, red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, opacity: Double(a) / 255)
     }
 }
