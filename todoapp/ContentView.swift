@@ -7,6 +7,8 @@ struct ContentView: View {
     @State private var music = MusicManager()
     @State private var showFocus = false
     @State private var lastSceneRefresh = Date()
+    @State private var keyboardVisible = false
+    @AppStorage("ai_mode") private var aiMode = "focus"
 
     let tabs: [(icon: String, label: String)] = [
         ("circle", "Tasks"),
@@ -30,7 +32,21 @@ struct ContentView: View {
                             .font(.system(size: 20, weight: .bold, design: .rounded))
                             .foregroundColor(Color(hex: "1a1c1c"))
                     }
-                    Spacer()
+
+                    if selectedPage == 3 {
+                        Spacer()
+                        Picker("Mode", selection: $aiMode) {
+                            Text("Focus").tag("focus")
+                            Text("Simple").tag("simple")
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 180)
+                        .scaleEffect(0.85)
+                        Spacer()
+                    } else {
+                        Spacer()
+                    }
+
                     HStack(spacing: 12) {
                         Button { showFocus = true } label: {
                             Image(systemName: "circle.dotted")
@@ -63,7 +79,17 @@ struct ContentView: View {
             }
 
             // Bottom Navigation
-            navBar
+            if !keyboardVisible {
+                navBar
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: keyboardVisible)
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            keyboardVisible = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            keyboardVisible = false
         }
         .task {
             if !ek.remindersGranted || !ek.calendarGranted {

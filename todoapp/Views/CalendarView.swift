@@ -105,7 +105,7 @@ struct CalendarView: View {
 
     private var weekdayRow: some View {
         HStack(spacing: 0) {
-            ForEach(weekdays, id: \.self) { day in
+            ForEach(Array(weekdays.enumerated()), id: \.offset) { _, day in
                 Text(day)
                     .font(.system(size: 10, weight: .bold, design: .rounded))
                     .foregroundColor(Color(hex: "444748").opacity(0.5))
