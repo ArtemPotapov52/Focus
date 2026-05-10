@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var selectedPage = 0
     @State private var music = MusicManager()
     @State private var showFocus = false
+    @State private var showProfile = false
     @State private var lastSceneRefresh = Date()
     @State private var keyboardVisible = false
     @AppStorage("ai_mode") private var aiMode = "focus"
@@ -53,9 +54,7 @@ struct ContentView: View {
                                 .font(.system(size: 18))
                                 .foregroundColor(Color(hex: "1a1c1c").opacity(0.7))
                         }
-                        Image(systemName: "person.circle")
-                            .font(.system(size: 22))
-                            .foregroundColor(Color(hex: "1a1c1c"))
+                        AvatarIcon()
                     }
                 }
                 .padding(.horizontal, 20)
@@ -103,6 +102,9 @@ struct ContentView: View {
         .fullScreenCover(isPresented: $showFocus) {
             FocusView()
         }
+        .fullScreenCover(isPresented: $showProfile) {
+            ProfileView()
+        }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active, Date().timeIntervalSince(lastSceneRefresh) > 2 else { return }
             lastSceneRefresh = Date()
@@ -146,5 +148,13 @@ struct ContentView: View {
                 .fill(Color(hex: "c4c7c7").opacity(0.1))
                 .frame(height: 1)
         }
+    }
+}
+
+struct AvatarIcon: View {
+    var body: some View {
+        Image(systemName: "person.circle")
+            .font(.system(size: 22))
+            .foregroundColor(Color(hex: "1a1c1c"))
     }
 }
