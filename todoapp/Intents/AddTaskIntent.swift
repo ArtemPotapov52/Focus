@@ -1,5 +1,6 @@
 import AppIntents
 import EventKit
+import WidgetKit
 
 struct AddTaskIntent: AppIntent {
     static var title: LocalizedStringResource = "Добавить задачу"
@@ -27,6 +28,7 @@ struct AddTaskIntent: AppIntent {
             ?? store.calendars(for: .reminder).first
 
         try store.save(reminder, commit: true)
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoWidgetsExtension")
 
         return .result(dialog: "✅ «\(task)» добавлена")
     }
