@@ -1,5 +1,6 @@
 import EventKit
 import SwiftUI
+import WidgetKit
 
 @Observable
 final class EventKitManager {
@@ -42,7 +43,7 @@ final class EventKitManager {
             calendarGranted = false
         }
         if remindersGranted { fetchLists() }
-        if calendarGranted { fetchEvents() }
+        if calendarGranted { fetchEventsAround(Date()) }
     }
 
     func refresh() {
@@ -54,7 +55,7 @@ final class EventKitManager {
             fetchReminders()
         }
         if calendarGranted {
-            fetchEvents()
+            fetchEventsAround(Date())
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             self?.isLoading = false
@@ -97,18 +98,33 @@ final class EventKitManager {
         reminder.calendar = list ?? selectedList ?? store.defaultCalendarForNewReminders()
         try? store.save(reminder, commit: true)
         fetchReminders()
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoWidgetsExtension")
     }
 
     func toggleComplete(_ reminder: EKReminder) {
         reminder.isCompleted = !reminder.isCompleted
         try? store.save(reminder, commit: true)
         fetchReminders()
+        WidgetCenter.shared.reloadTimelines(ofKind: "TodoWidgetsExtension")
     }
 
-    func fetchEvents() {
-        let start = Calendar.current.startOfDay(for: Date())
-        let end = Calendar.current.date(byAdding: .day, value: 7, to: start)!
+    func fetchEvents(from start: Date, to end: Date) {
         let all = store.events(matching: store.predicateForEvents(withStart: start, end: end, calendars: nil))
         events = all.sorted { $0.startDate < $1.startDate }
+    }
+
+    func addEvent(title: String, date: Date) {
+        let event = EKEvent(eventStore: store)
+        event.title = title
+        event.startDate = date
+        event.endDate = date.addingTimeInterval(3600)
+        event.calendar = store.defaultCalendarForNewEvents ?? store.calendars(for: .event).first
+        try? store.save(event, span: .thisEvent, commit: true)
+    }
+
+    func fetchEventsAround(_ date: Date) {
+        let start = Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: date)) ?? date
+        let end = Calendar.current.date(byAdding: .month, value: 1, to: start) ?? date
+        fetchEvents(from: start, to: end)
     }
 }

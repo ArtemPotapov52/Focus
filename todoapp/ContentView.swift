@@ -38,7 +38,7 @@ struct ContentView: View {
                 } else {
                     ek.fetchLists()
                     ek.fetchReminders()
-                    ek.fetchEvents()
+                    ek.fetchEventsAround(Date())
                 }
             }
             .overlay(alignment: .bottom) {
