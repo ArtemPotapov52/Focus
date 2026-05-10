@@ -4,6 +4,7 @@ struct ContentView: View {
     @Environment(EventKitManager.self) var ek
     @State private var selectedPage = 1
     @State private var music = MusicManager()
+    @State private var showFocus = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -61,7 +62,24 @@ struct ContentView: View {
                     .padding(.bottom, 30)
             }
 
+            // focus button
+            Button {
+                showFocus = true
+            } label: {
+                Label("Фокус", systemImage: "target")
+                    .font(.subheadline.weight(.medium))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.ultraThinMaterial.opacity(0.3))
+                    .foregroundColor(.white)
+                    .clipShape(Capsule())
+            }
+            .padding(.top, 14)
+
 //            PlayerBarView(music: music)
+        }
+        .fullScreenCover(isPresented: $showFocus) {
+            FocusView()
         }
     }
 
