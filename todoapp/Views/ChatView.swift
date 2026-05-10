@@ -10,27 +10,28 @@ struct ChatView: View {
         VStack(spacing: 0) {
             HStack {
                 Text("AI Чат")
-                    .font(.title2.bold())
-                    .foregroundColor(.white)
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .foregroundColor(Color(hex: "1a1c1c"))
                 Spacer()
                 if !chat.messages.isEmpty {
                     Button { chat.clear() } label: {
                         Image(systemName: "trash")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.6))
+                            .font(.system(size: 13))
+                            .foregroundColor(Color(hex: "444748").opacity(0.6))
                     }
                 }
             }
-            .padding(.horizontal)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 16)
 
             if apiKey.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "key.fill")
-                        .font(.system(size: 36))
-                        .foregroundColor(.white.opacity(0.4))
+                        .font(.system(size: 34))
+                        .foregroundColor(Color(hex: "444748").opacity(0.3))
                     Text("Введи API ключ от OpenCode Zen")
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(Color(hex: "444748").opacity(0.6))
                         .font(.subheadline)
                     SecureField("API ключ", text: $apiKey)
                         .textFieldStyle(.roundedBorder)
@@ -43,10 +44,10 @@ struct ChatView: View {
             } else if chat.messages.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "bubble.left.and.bubble.right")
-                        .font(.system(size: 36))
-                        .foregroundColor(.white.opacity(0.4))
+                        .font(.system(size: 34))
+                        .foregroundColor(Color(hex: "444748").opacity(0.3))
                     Text("Спроси что-нибудь")
-                        .foregroundColor(.white.opacity(0.5))
+                        .foregroundColor(Color(hex: "444748").opacity(0.5))
                 }
                 .frame(maxHeight: .infinity)
             } else {
@@ -84,11 +85,11 @@ struct ChatView: View {
                 Button { send() } label: {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.title2)
-                        .foregroundColor(input.trimmingCharacters(in: .whitespaces).isEmpty || chat.isLoading ? .white.opacity(0.3) : .white)
+                        .foregroundColor(input.trimmingCharacters(in: .whitespaces).isEmpty || chat.isLoading ? Color(hex: "444748").opacity(0.3) : Color(hex: "1a1c1c"))
                 }
                 .disabled(input.trimmingCharacters(in: .whitespaces).isEmpty || chat.isLoading)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 20)
             .padding(.vertical, 8)
         }
     }
@@ -102,17 +103,17 @@ struct ChatView: View {
             VStack(alignment: msg.role == "user" ? .trailing : .leading, spacing: 2) {
                 Text(msg.role == "user" ? "Ты" : "Big Pickle")
                     .font(.caption2)
-                    .foregroundColor(.white.opacity(0.4))
+                    .foregroundColor(Color(hex: "444748").opacity(0.4))
                 Text(msg.content + (msg.isStreaming ? "▌" : ""))
                     .font(.body)
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(hex: "1a1c1c"))
                     .textSelection(.enabled)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(msg.role == "user" ? Color.blue.opacity(0.3) : Color.white.opacity(0.1))
+            .background(msg.role == "user" ? Color.blue.opacity(0.1) : Color(hex: "eeeeee"))
             .clipShape(RoundedRectangle(cornerRadius: 14))
-            .padding(.horizontal)
+            .padding(.horizontal, 20)
 
             if msg.role == "assistant" {
                 Spacer(minLength: 40)

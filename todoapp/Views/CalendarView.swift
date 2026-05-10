@@ -47,14 +47,15 @@ struct CalendarView: View {
     private var noAccessView: some View {
         VStack(spacing: 12) {
             Image(systemName: "calendar.badge.exclamationmark")
-                .font(.system(size: 40))
-                .foregroundColor(.white.opacity(0.5))
+                .font(.system(size: 34))
+                .foregroundColor(Color(hex: "444748").opacity(0.3))
             Text("Нет доступа к календарю")
-                .foregroundColor(.white.opacity(0.6))
+                .font(.system(size: 14, design: .rounded))
+                .foregroundColor(Color(hex: "444748").opacity(0.6))
             Button("Разрешить") {
                 Task { await ek.requestAccess() }
             }
-            .buttonStyle(.borderedProminent)
+            .tint(Color(hex: "1a1c1c"))
         }
         .frame(maxHeight: .infinity)
     }
@@ -65,25 +66,25 @@ struct CalendarView: View {
         HStack {
             Button { moveMonth(-1) } label: {
                 Image(systemName: "chevron.left")
-                    .font(.title3)
-                    .foregroundColor(.white.opacity(0.6))
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(Color(hex: "444748").opacity(0.6))
             }
 
             Spacer()
 
             Text(monthYearString)
-                .font(.title2.bold())
-                .foregroundColor(.white)
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundColor(Color(hex: "1a1c1c"))
 
             Spacer()
 
             Button { moveMonth(1) } label: {
                 Image(systemName: "chevron.right")
-                    .font(.title3)
-                    .foregroundColor(.white.opacity(0.6))
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(Color(hex: "444748").opacity(0.6))
             }
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
         .padding(.top, 16)
         .padding(.bottom, 8)
     }
@@ -95,7 +96,7 @@ struct CalendarView: View {
             ForEach(weekdays, id: \.self) { day in
                 Text(day)
                     .font(.caption2.weight(.medium))
-                    .foregroundColor(.white.opacity(0.4))
+                    .foregroundColor(Color(hex: "444748").opacity(0.4))
                     .frame(maxWidth: .infinity)
             }
         }
@@ -134,23 +135,23 @@ struct CalendarView: View {
             ZStack {
                 if isSelected {
                     Circle()
-                        .fill(.white)
+                        .fill(Color(hex: "1a1c1c"))
                         .frame(width: 34, height: 34)
                 } else if isToday {
                     Circle()
-                        .stroke(Color.white, lineWidth: 1.5)
+                        .stroke(Color(hex: "1a1c1c"), lineWidth: 1.5)
                         .frame(width: 34, height: 34)
                 }
 
                 Text("\(cal.component(.day, from: date))")
                     .font(.callout.weight(isSelected ? .bold : .regular))
-                    .foregroundColor(isSelected ? .black : isCurrentMonth ? .white : .white.opacity(0.25))
+                    .foregroundColor(isSelected ? .white : isCurrentMonth ? Color(hex: "1a1c1c") : Color(hex: "444748").opacity(0.25))
             }
             .frame(height: 38)
             .overlay(alignment: .bottom) {
                 if hasEvents && !isSelected {
                     Circle()
-                        .fill(.white.opacity(0.5))
+                        .fill(Color(hex: "1a1c1c").opacity(0.4))
                         .frame(width: 4, height: 4)
                         .offset(y: -2)
                 }
@@ -166,20 +167,20 @@ struct CalendarView: View {
 
         return VStack(alignment: .leading, spacing: 0) {
             Divider()
-                .background(.white.opacity(0.1))
+                .background(Color(hex: "c4c7c7").opacity(0.3))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
 
             Text(formattedSelectedDate)
                 .font(.subheadline.weight(.semibold))
-                .foregroundColor(.white.opacity(0.7))
+                .foregroundColor(Color(hex: "444748").opacity(0.7))
                 .padding(.horizontal, 20)
                 .padding(.bottom, 8)
 
             if dayEvents.isEmpty && dayTasks.isEmpty {
                 Text("Нет событий и задач")
                     .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.3))
+                    .foregroundColor(Color(hex: "444748").opacity(0.3))
                     .padding(.horizontal, 20)
                     .padding(.bottom, 120)
             } else {
@@ -199,10 +200,10 @@ struct CalendarView: View {
             VStack(spacing: 2) {
                 Text(event.startDate, style: .time)
                     .font(.caption.bold())
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(hex: "1a1c1c"))
                 Text(event.endDate, style: .time)
                     .font(.caption2)
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(Color(hex: "444748").opacity(0.5))
             }
             .frame(width: 58)
 
@@ -213,11 +214,11 @@ struct CalendarView: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(event.title ?? "Без названия")
                     .font(.subheadline.bold())
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(hex: "1a1c1c"))
                 if let loc = event.location, !loc.isEmpty {
                     Text(loc)
                         .font(.caption)
-                        .foregroundColor(.white.opacity(0.5))
+                        .foregroundColor(Color(hex: "444748").opacity(0.5))
                 }
             }
 
@@ -234,12 +235,12 @@ struct CalendarView: View {
             HStack(spacing: 10) {
                 Image(systemName: "circle")
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(Color(hex: "444748").opacity(0.5))
                     .frame(width: 12)
 
                 Text(task.title ?? "")
                     .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(Color(hex: "1a1c1c").opacity(0.8))
                     .strikethrough(task.isCompleted)
 
                 Spacer()
@@ -262,15 +263,15 @@ struct CalendarView: View {
                     showAdd = true
                 } label: {
                     Image(systemName: "plus")
-                        .font(.title2.weight(.semibold))
-                        .foregroundColor(.black)
-                        .frame(width: 50, height: 50)
-                        .background(Color.white)
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(Color(hex: "ffffff"))
+                        .frame(width: 48, height: 48)
+                        .background(Color(hex: "1a1c1c"))
                         .clipShape(Circle())
-                        .shadow(color: .black.opacity(0.2), radius: 6)
+                        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                 }
                 .padding(.trailing, 20)
-                .padding(.bottom, 40)
+                .padding(.bottom, 80)
             }
         }
     }

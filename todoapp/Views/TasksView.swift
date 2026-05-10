@@ -12,32 +12,13 @@ struct TasksView: View {
             Color(hex: "f9f9f9").ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Top App Bar
-                HStack {
-                    HStack(spacing: 6) {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                            .font(.system(size: 18))
-                            .foregroundColor(Color(hex: "1a1c1c"))
-                        Text("Focus")
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(hex: "1a1c1c"))
-                    }
-                    Spacer()
-                    Image(systemName: "person.circle")
-                        .font(.system(size: 22))
-                        .foregroundColor(Color(hex: "1a1c1c"))
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 8)
-                .background(Color(hex: "f9f9f9"))
-
                 ScrollView {
                     VStack(spacing: 0) {
                         // Today Header + Category Picker
                         HStack(alignment: .firstTextBaseline) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Today")
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .font(.system(size: 26, weight: .bold, design: .rounded))
                                     .foregroundColor(Color(hex: "1a1c1c"))
 
                                 Text(todayString.uppercased())
@@ -80,8 +61,8 @@ struct TasksView: View {
                                 .clipShape(Capsule())
                             }
                         }
-                        .padding(.top, 8)
-                        .padding(.bottom, 24)
+                        .padding(.top, 16)
+                        .padding(.bottom, 16)
                         .padding(.horizontal, 20)
 
                         if !ek.remindersGranted {
