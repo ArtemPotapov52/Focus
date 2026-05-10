@@ -91,6 +91,14 @@ final class EventKitManager {
         }
     }
 
+    func addReminder(title: String, list: EKCalendar? = nil) {
+        let reminder = EKReminder(eventStore: store)
+        reminder.title = title
+        reminder.calendar = list ?? selectedList ?? store.defaultCalendarForNewReminders()
+        try? store.save(reminder, commit: true)
+        fetchReminders()
+    }
+
     func toggleComplete(_ reminder: EKReminder) {
         reminder.isCompleted = !reminder.isCompleted
         try? store.save(reminder, commit: true)
