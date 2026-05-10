@@ -71,25 +71,25 @@ struct CalendarWidgetEntryView: View {
                 .frame(maxHeight: .infinity)
             } else {
                 Text("TODAY")
-                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
                     .foregroundColor(textSecondary)
                     .tracking(1.5)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 6)
 
-                VStack(spacing: 6) {
+                VStack(spacing: 8) {
                     ForEach(Array(entry.events.enumerated()), id: \.offset) { _, event in
                         HStack(spacing: 6) {
                             Circle()
                                 .fill(textPrimary)
-                                .frame(width: 5, height: 5)
+                                .frame(width: 7, height: 7)
 
                             Text(timeString(event.startDate))
-                                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                .font(.system(size: 12, weight: .semibold, design: .rounded))
                                 .foregroundColor(textSecondary)
 
                             Text(event.title ?? "")
-                                .font(.system(size: 11, weight: .medium, design: .rounded))
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
                                 .foregroundColor(textPrimary)
                                 .lineLimit(1)
 

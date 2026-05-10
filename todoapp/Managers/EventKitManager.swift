@@ -129,8 +129,17 @@ final class EventKitManager {
         event.endDate = endDate
         event.notes = notes
         event.isAllDay = isAllDay
-        event.calendar = calendar ?? store.defaultCalendarForNewEvents ?? store.calendars(for: .event).first
-        try? store.save(event, span: .thisEvent, commit: true)
+        event.timeZone = TimeZone.current
+        let writable = store.calendars(for: .event).filter { $0.allowsContentModifications }
+        event.calendar = calendar ?? store.defaultCalendarForNewEvents ?? writable.first
+        let cal = Calendar.current
+        do {
+            try store.save(event, span: .thisEvent, commit: true)
+            events.append(event)
+            events.sort { $0.startDate < $1.startDate }
+        } catch {
+            print("Event save error: \(error)")
+        }
     }
 
     func fetchEventsAround(_ date: Date) {
