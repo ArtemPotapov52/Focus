@@ -197,62 +197,71 @@ struct FocusSessionActiveView: View {
     // MARK: - Tasks Column
 
     private var tasksColumn: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text("TASKS")
-                    .font(.system(size: 9, weight: .bold, design: .rounded))
-                    .foregroundColor(Color.white.opacity(0.4))
-                    .tracking(2)
-                Spacer()
-                Text("\(session.currentIndex + 1)/\(session.selectedTasks.count)")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundColor(Color.white.opacity(0.35))
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
-
-            if let current = session.currentTask {
-                let isAnimating = completingId == current.calendarItemIdentifier
-                Text(current.title ?? "")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                    .strikethrough(isAnimating)
-                    .overlay(alignment: .leading) {
-                        if isAnimating {
-                            GeometryReader { geo in
-                                Color.white
-                                    .frame(width: geo.size.width * 1, height: 3)
-                                    .offset(y: geo.size.height / 2 - 1.5)
-                            }
-                            .transition(.scale(scale: 0, anchor: .leading))
-                        }
-                    }
-                    .lineLimit(3)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 6)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        guard !isAnimating else { return }
-                        completeTask(current)
-                    }
-                    .opacity(isAnimating ? 0.3 : 1)
-            }
-
-            ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(session.upcomingTasks, id: \.calendarItemIdentifier) { task in
-                        Text(task.title ?? "")
-                            .font(.system(size: 16, weight: .regular, design: .rounded))
-                            .foregroundColor(Color.white.opacity(0.3))
-                            .lineLimit(1)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 5)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+        ZStack {
+            // Header pinned at top
+            VStack(spacing: 0) {
+                HStack {
+                    Text("TASKS")
+                        .font(.system(size: 9, weight: .bold, design: .rounded))
+                        .foregroundColor(Color.white.opacity(0.4))
+                        .tracking(2)
+                    Spacer()
+                    Text("\(session.currentIndex + 1)/\(session.selectedTasks.count)")
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundColor(Color.white.opacity(0.35))
                 }
-                .padding(.top, 4)
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                Spacer()
+            }
+
+            // Tasks centered vertically
+            VStack(spacing: 4) {
+                if let current = session.currentTask {
+                    let isAnimating = completingId == current.calendarItemIdentifier
+                    Text(current.title ?? "")
+                        .font(.system(size: 40, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .strikethrough(isAnimating)
+                        .overlay(alignment: .leading) {
+                            if isAnimating {
+                                GeometryReader { geo in
+                                    Color.white
+                                        .frame(width: geo.size.width, height: 4)
+                                        .offset(y: geo.size.height / 2 - 2)
+                                }
+                                .transition(.scale(scale: 0, anchor: .leading))
+                            }
+                        }
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 20)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            guard !isAnimating else { return }
+                            completeTask(current)
+                        }
+                        .opacity(isAnimating ? 0.3 : 1)
+                        .padding(.bottom, 10)
+                }
+
+                ForEach(Array(session.upcomingTasks.prefix(5).enumerated()), id: \.element.calendarItemIdentifier) { index, task in
+                    let step = min(index, 4)
+                    Text(task.title ?? "")
+                        .font(.system(size: CGFloat(24 - step * 2), weight: .regular, design: .rounded))
+                        .foregroundColor(Color.white.opacity(max(0.2, 0.6 - Double(step) * 0.09)))
+                        .lineLimit(1)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 20)
+                }
+
+                if session.upcomingTasks.count > 5 {
+                    Text("+ \(session.upcomingTasks.count - 5) more")
+                        .font(.system(size: 12, weight: .regular, design: .rounded))
+                        .foregroundColor(Color.white.opacity(0.2))
+                }
             }
         }
         .animation(.smooth(duration: 0.35), value: session.currentIndex)
@@ -264,7 +273,8 @@ struct FocusSessionActiveView: View {
             completingId = id
         }
 
-        ek.toggleComplete(task)
+        try? ek.store.remove(task, commit: true)
+        ek.reminders.removeAll { $0.calendarItemIdentifier == id }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             withAnimation(.smooth(duration: 0.35)) {

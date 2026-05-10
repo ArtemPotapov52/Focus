@@ -57,7 +57,7 @@ struct ContentView: View {
                                 .foregroundColor(Color(hex: "1a1c1c").opacity(0.7))
                         }
                         Button { showFocusSession = true } label: {
-                            Text("Session")
+                            Text("Focus")
                                 .font(.system(size: 13, weight: .medium, design: .rounded))
                                 .foregroundColor(Color(hex: "1a1c1c"))
                                 .padding(.horizontal, 10)
