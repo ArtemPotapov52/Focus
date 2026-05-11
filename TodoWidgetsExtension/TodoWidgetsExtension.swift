@@ -75,7 +75,7 @@ struct Provider: TimelineProvider {
                         cont.resume(returning: all ?? [])
                     }
                 }
-                tasks = Array(all.filter { !$0.isCompleted }.prefix(7))
+                tasks = Array(all.filter { !$0.isCompleted })
             }
         } catch {
             return TasksEntry(date: Date(), tasks: [], error: "No access")

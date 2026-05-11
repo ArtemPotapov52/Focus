@@ -30,7 +30,7 @@ struct AddTaskIntent: AppIntent {
         try store.save(reminder, commit: true)
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoWidgetsExtension")
 
-        return .result(dialog: "✅ «\(task)» добавлена")
+        return .result(dialog: "Задача «\(task)» успешно добавлена")
     }
 }
 

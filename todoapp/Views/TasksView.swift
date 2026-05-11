@@ -201,7 +201,7 @@ struct TasksView: View {
                     .padding(.vertical, 6)
                     .transition(.asymmetric(
                         insertion: .identity,
-                        removal: .move(edge: .top).combined(with: .opacity)
+                        removal: .move(edge: .bottom).combined(with: .opacity)
                     ))
                 }
             }
@@ -250,8 +250,10 @@ struct TasksView: View {
         let id = task.calendarItemIdentifier
         completingTaskId = id
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            ek.toggleComplete(task)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            withAnimation(.smooth(duration: 0.4)) {
+                ek.toggleComplete(task)
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 completingTaskId = nil
             }
@@ -278,6 +280,7 @@ struct TaskRowView: View {
     let onComplete: () -> Void
 
     @State private var sweepWidth: CGFloat = 0
+    @State private var checkScale: CGFloat = 0
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -285,19 +288,21 @@ struct TaskRowView: View {
             Button {
                 if !isCompleted { onComplete() }
             } label: {
-                if isCompleted || isAnimating {
-                    ZStack {
+                ZStack {
+                    Circle()
+                        .stroke(isCompleted || isAnimating ? Color.clear : .appBorder.opacity(0.5), lineWidth: 1.5)
+                        .frame(width: 22, height: 22)
+
+                    if isCompleted || isAnimating {
                         Circle()
                             .fill(.appText)
                             .frame(width: 22, height: 22)
+
                         Image(systemName: "checkmark")
                             .font(.system(size: 10, weight: .black))
                             .foregroundColor(.white)
+                            .scaleEffect(isCompleted ? 1 : checkScale)
                     }
-                } else {
-                    Circle()
-                        .stroke(.appBorder.opacity(0.5), lineWidth: 1.5)
-                        .frame(width: 22, height: 22)
                 }
             }
             .padding(.top, 3)
@@ -341,11 +346,15 @@ struct TaskRowView: View {
         .opacity(isAnimating ? 0.6 : 1)
         .onChange(of: isAnimating) { _, new in
             if new {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.55)) {
+                    checkScale = 1
+                }
                 withAnimation(.easeInOut(duration: 0.35).delay(0.05)) {
                     sweepWidth = 1
                 }
             } else {
                 sweepWidth = 0
+                checkScale = 0
             }
         }
     }
@@ -386,6 +395,7 @@ struct AddTaskView: View {
     @State private var dueDate = Date().addingTimeInterval(3600)
     @State private var hasDueDate = false
     @State private var selectedList: EKCalendar?
+    @AppStorage("default_list_id") private var defaultListId: String = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -407,7 +417,10 @@ struct AddTaskView: View {
                     if !t.isEmpty {
                         let list = selectedList ?? defaultList ?? ek.selectedList
                         ek.addReminder(title: t, list: list)
-                        if let l = list { selectedCategory = l }
+                        if let l = list {
+                            selectedCategory = l
+                            defaultListId = l.calendarIdentifier
+                        }
                     }
                     dismiss()
                 }
@@ -464,7 +477,7 @@ struct AddTaskView: View {
                         .font(.system(size: 20))
                         .foregroundColor(.appText)
                     Picker("List", selection: $selectedList) {
-                        Text("Default").tag(nil as EKCalendar?)
+                        Text(defaultListId.isEmpty ? "Default" : ek.reminderLists.first(where: { $0.calendarIdentifier == defaultListId })?.title ?? "Default").tag(nil as EKCalendar?)
                         ForEach(ek.reminderLists, id: \.calendarIdentifier) { list in
                             Text(list.title).tag(list as EKCalendar?)
                         }
@@ -482,6 +495,14 @@ struct AddTaskView: View {
         .presentationDetents([.large])
         .onAppear {
             selectedList = defaultList ?? ek.selectedList
+            if let id = defaultListId.isEmpty ? nil : defaultListId,
+               let saved = ek.reminderLists.first(where: { $0.calendarIdentifier == id })
+            {
+                selectedList = saved
+            }
+        }
+        .onChange(of: selectedList) { _, list in
+            if let l = list { defaultListId = l.calendarIdentifier }
         }
     }
 }
