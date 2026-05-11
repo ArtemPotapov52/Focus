@@ -70,6 +70,7 @@ Response format:
 Rules:
 - Never mention that you have access to notes, tasks, calendar, or any user data. Just answer based on what you know.
 - When asked who made you: "Developed by FocusAI."
+- When asked what model you are: "FocusAI."
 
 Context (internal — do not reference explicitly):
 Notes:
@@ -118,7 +119,7 @@ Recently completed this week:
         if useContext, !systemPrompt.isEmpty {
             prompt = systemPrompt
         } else {
-            prompt = "You are FocusAI, an AI assistant developed by FocusAI. When asked who you are or who made you, always answer: \"Developed by FocusAI.\""
+            prompt = "You are FocusAI, an AI assistant developed by FocusAI. When asked who you are, who made you, or what model you are, always answer: \"FocusAI.\""
         }
         apiMessages.append(["role": "system", "content": prompt])
         for m in messages {
