@@ -6,6 +6,7 @@ struct ChatView: View {
     @State private var chat = ChatManager()
     @State private var input = ""
     @AppStorage("chat_api_key") private var apiKey = Secrets.openCodeKey
+    @AppStorage("ai_mode") private var aiMode = "focus"
     @Query private var notes: [Note]
     @Environment(EventKitManager.self) var ek
     @FocusState private var inputFocused
@@ -25,6 +26,11 @@ struct ChatView: View {
 
             // Input area
             inputArea
+        }
+        .onAppear {
+            if aiMode == "focus" {
+                updateContext()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { n in
             if let r = n.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
@@ -210,6 +216,13 @@ struct ChatView: View {
                 suggestedPrompts
             }
 
+            Picker("Mode", selection: $aiMode) {
+                Text("Focus").tag("focus")
+                Text("Simple").tag("simple")
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 16)
+
             HStack(spacing: 0) {
                 Button {
                     inputFocused = false
@@ -309,7 +322,53 @@ struct ChatView: View {
         let text = input.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty, !chat.isLoading else { return }
         input = ""
+        chat.useContext = aiMode == "focus"
+        if aiMode == "focus" {
+            updateContext()
+        }
         chat.send(text, apiKey: apiKey)
+    }
+
+    private func updateContext() {
+        let notesStr = notes.map { "- \($0.title): \($0.content)" }.joined(separator: "\n")
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let todayEnd = cal.date(byAdding: .day, value: 1, to: today)!
+        let todayTasks = ek.reminders.filter { r in
+            guard let d = r.dueDateComponents?.date else { return false }
+            return d >= today && d < todayEnd
+        }
+        let tasksStr = todayTasks.compactMap { $0.title }.map { "- \($0)" }.joined(separator: "\n")
+        let todayEvents = ek.events.filter { cal.isDate($0.startDate, inSameDayAs: Date()) }
+        let eventsStr = todayEvents.map { e in
+            let df = DateFormatter()
+            df.dateFormat = "HH:mm"
+            return "- \(e.title ?? "Untitled") at \(df.string(from: e.startDate))"
+        }.joined(separator: "\n")
+
+        let weekAgo = cal.date(byAdding: .day, value: -7, to: today)!
+        let completedAll = ek.reminders.filter { r in
+            guard let cd = r.completionDate else { return false }
+            return cd >= weekAgo
+        }
+        let completedToday = completedAll.filter { cal.isDateInToday($0.completionDate ?? .distantPast) }
+        let completedWeek = completedAll.filter { !cal.isDateInToday($0.completionDate ?? .distantPast) }
+
+        let completedTodayStr = completedToday.compactMap { r -> String? in
+            guard let t = r.title, let cd = r.completionDate else { return nil }
+            let df = DateFormatter()
+            df.dateFormat = "HH:mm"
+            return "- \(t) (at \(df.string(from: cd)))"
+        }.joined(separator: "\n")
+
+        let completedWeekStr = completedWeek.compactMap { r -> String? in
+            guard let t = r.title, let cd = r.completionDate else { return nil }
+            let df = DateFormatter()
+            df.dateFormat = "EEE, MMM d"
+            return "- \(t) — \(df.string(from: cd))"
+        }.joined(separator: "\n")
+
+        chat.setContext(notes: notesStr, tasks: tasksStr, events: eventsStr, completedToday: completedTodayStr, completedWeek: completedWeekStr)
     }
 }
 
