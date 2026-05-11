@@ -42,10 +42,10 @@ struct ChatView: View {
         VStack(spacing: 12) {
             Image(systemName: "key.fill")
                 .font(.system(size: 34))
-                .foregroundColor(Color(hex: "444748").opacity(0.3))
+                .foregroundColor(.appTextSec.opacity(0.3))
             Text("Enter your API key")
                 .font(.system(size: 14, design: .rounded))
-                .foregroundColor(Color(hex: "444748").opacity(0.6))
+                .foregroundColor(.appTextSec.opacity(0.6))
             SecureField("API key", text: $apiKey)
                 .textFieldStyle(.roundedBorder)
                 .padding(.horizontal, 40)
@@ -61,15 +61,15 @@ struct ChatView: View {
 
             Image(systemName: "sparkles")
                 .font(.system(size: 36))
-                .foregroundColor(Color(hex: "444748").opacity(0.2))
+                .foregroundColor(.appTextSec.opacity(0.2))
 
             Text("How can I help you?")
                 .font(.system(size: 16, weight: .semibold, design: .rounded))
-                .foregroundColor(Color(hex: "1a1c1c"))
+                .foregroundColor(.appText)
 
             Text("Ask about your notes, tasks, or schedule")
                 .font(.system(size: 13, design: .rounded))
-                .foregroundColor(Color(hex: "444748").opacity(0.5))
+                .foregroundColor(.appTextSec.opacity(0.5))
 
             Spacer()
         }
@@ -130,7 +130,7 @@ struct ChatView: View {
 
                 Text(msg.timestamp, style: .time)
                     .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(hex: "444748").opacity(0.35))
+                    .foregroundColor(.appTextSec.opacity(0.35))
                     .padding(.horizontal, 4)
             }
 
@@ -148,7 +148,7 @@ struct ChatView: View {
             .foregroundColor(.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(Color(hex: "1a1c1c"))
+            .background(.appText)
             .clipShape(RoundedCorner(radius: 18, corners: [.topLeft, .topRight, .bottomLeft]))
     }
 
@@ -161,21 +161,21 @@ struct ChatView: View {
                 HStack(spacing: 0) {
                     MarkdownText(msg.content)
                         .font(.system(size: 14, design: .rounded))
-                        .foregroundColor(Color(hex: "1a1c1c"))
+                        .foregroundColor(.appText)
                     if msg.isStreaming {
                         Text("▎")
                             .font(.system(size: 13, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(hex: "1a1c1c"))
+                            .foregroundColor(.appText)
                     }
                 }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(Color(hex: "f3f3f4"))
+            .background(.appBubble)
             .clipShape(RoundedCorner(radius: 18, corners: [.topLeft, .topRight, .bottomRight]))
             .overlay(
                 RoundedCorner(radius: 18, corners: [.topLeft, .topRight, .bottomRight])
-                    .stroke(Color(hex: "c4c7c7").opacity(0.3), lineWidth: 1)
+                    .stroke(.appBorder.opacity(0.3), lineWidth: 1)
             )
         }
     }
@@ -184,21 +184,21 @@ struct ChatView: View {
         HStack(spacing: 8) {
             Image(systemName: "sparkles")
                 .font(.system(size: 14))
-                .foregroundColor(Color(hex: "444748").opacity(0.5))
+                .foregroundColor(.appTextSec.opacity(0.5))
                 .shimmer()
             Text(chat.thinkingPhrase)
                 .font(.system(size: 13, design: .rounded))
-                .foregroundColor(Color(hex: "444748").opacity(0.6))
+                .foregroundColor(.appTextSec.opacity(0.6))
                 .italic()
                 .shimmer()
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(Color(hex: "f3f3f4"))
+        .background(.appBubble)
         .clipShape(RoundedCorner(radius: 18, corners: [.topLeft, .topRight, .bottomRight]))
         .overlay(
             RoundedCorner(radius: 18, corners: [.topLeft, .topRight, .bottomRight])
-                .stroke(Color(hex: "c4c7c7").opacity(0.3), lineWidth: 1)
+                .stroke(.appBorder.opacity(0.3), lineWidth: 1)
         )
     }
 
@@ -216,14 +216,14 @@ struct ChatView: View {
                 } label: {
                     Image(systemName: "chevron.down")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color(hex: "444748").opacity(0.5))
+                        .foregroundColor(.appTextSec.opacity(0.5))
                         .frame(width: 32, height: 32)
                 }
                 .buttonStyle(.plain)
 
                 TextField("Message FocusAI...", text: $input, axis: .vertical)
                     .font(.system(size: 15, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
                     .lineLimit(1...6)
                     .autocorrectionDisabled()
                     .focused($inputFocused)
@@ -250,7 +250,7 @@ struct ChatView: View {
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.white)
                             .frame(width: 32, height: 32)
-                            .background(input.trimmingCharacters(in: .whitespaces).isEmpty ? Color(hex: "1a1c1c").opacity(0.3) : Color(hex: "1a1c1c"))
+                            .background(input.trimmingCharacters(in: .whitespaces).isEmpty ? .appText.opacity(0.3) : .appText)
                             .clipShape(Circle())
                     }
                     .disabled(input.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -258,11 +258,11 @@ struct ChatView: View {
                     .transition(.scale.combined(with: .opacity))
                 }
             }
-            .background(Color(hex: "ffffff"))
+            .background(.appWhite)
             .clipShape(RoundedRectangle(cornerRadius: 24))
             .overlay(
                 RoundedRectangle(cornerRadius: 24)
-                    .stroke(Color(hex: "c4c7c7").opacity(0.4), lineWidth: 1)
+                    .stroke(.appBorder.opacity(0.4), lineWidth: 1)
             )
             .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
             .padding(.horizontal, 16)
@@ -287,14 +287,14 @@ struct ChatView: View {
                     } label: {
                         Text(prompt)
                             .font(.system(size: 12, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(hex: "1a1c1c"))
+                            .foregroundColor(.appText)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 6)
-                            .background(Color(hex: "e2e2e2").opacity(0.5))
+                            .background(.appGrayBg.opacity(0.5))
                             .clipShape(Capsule())
                             .overlay(
                                 Capsule()
-                                    .stroke(Color(hex: "c4c7c7").opacity(0.3), lineWidth: 1)
+                                    .stroke(.appBorder.opacity(0.3), lineWidth: 1)
                             )
                     }
                 }
@@ -354,7 +354,7 @@ struct MarkdownText: View {
             case .code:
                 result = result + Text(segment.content)
                     .font(.system(size: 13, design: .monospaced))
-                    .foregroundColor(Color(hex: "006685"))
+                    .foregroundColor(.appAccent)
             case .plain:
                 result = result + Text(segment.content)
             }

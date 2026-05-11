@@ -119,7 +119,6 @@ struct TodoWidgetsExtensionEntryView: View {
                     .frame(maxWidth: .infinity)
                 Spacer(minLength: 0)
             } else {
-                Spacer(minLength: 0)
                 ForEach(Array(shown.enumerated()), id: \.element.calendarItemIdentifier) { index, task in
                     Button(intent: CompleteTaskIntent(
                         taskID: task.calendarItemIdentifier,
@@ -131,7 +130,7 @@ struct TodoWidgetsExtensionEntryView: View {
                                 .frame(width: 16, height: 16)
 
                             Text(task.title ?? "")
-                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 .foregroundColor(.primary)
 
                             Spacer()

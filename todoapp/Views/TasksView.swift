@@ -19,12 +19,12 @@ struct TasksView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Today")
                                     .font(.system(size: 26, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color(hex: "1a1c1c"))
+                                    .foregroundColor(.appText)
 
                                 Text(todayString.uppercased())
                                     .font(.system(size: 11, weight: .bold, design: .rounded))
                                     .tracking(0.08 * 11)
-                                    .foregroundColor(Color(hex: "444748").opacity(0.5))
+                                    .foregroundColor(.appTextSec.opacity(0.5))
                             }
 
                             Spacer()
@@ -50,14 +50,14 @@ struct TasksView: View {
                                 HStack(spacing: 4) {
                                     Text(selectedCategory?.title ?? "All")
                                         .font(.system(size: 13, weight: .medium, design: .rounded))
-                                        .foregroundColor(Color(hex: "444748").opacity(0.6))
+                                        .foregroundColor(.appTextSec.opacity(0.6))
                                     Image(systemName: "chevron.down")
                                         .font(.system(size: 10, weight: .medium))
-                                        .foregroundColor(Color(hex: "444748").opacity(0.4))
+                                        .foregroundColor(.appTextSec.opacity(0.4))
                                 }
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
-                                .background(Color(hex: "eeeeee"))
+                                .background(.appGrayBg)
                                 .clipShape(Capsule())
                             }
                         }
@@ -108,7 +108,7 @@ struct TasksView: View {
                     .font(.system(size: 22, weight: .medium))
                     .foregroundColor(.white)
                     .frame(width: 48, height: 48)
-                    .background(Color(hex: "1a1c1c"))
+                    .background(.appText)
                     .clipShape(Circle())
                     .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
             }
@@ -126,15 +126,15 @@ struct TasksView: View {
         VStack(spacing: 12) {
             Image(systemName: "bell.badge")
                 .font(.system(size: 34))
-                .foregroundColor(Color(hex: "444748").opacity(0.5))
+                .foregroundColor(.appTextSec.opacity(0.5))
             Text("Нет доступа к напоминаниям")
                 .font(.system(size: 14, design: .rounded))
-                .foregroundColor(Color(hex: "444748").opacity(0.6))
+                .foregroundColor(.appTextSec.opacity(0.6))
             Button("Разрешить") {
                 Task { await ek.requestAccess() }
             }
             .buttonStyle(.borderedProminent)
-            .tint(Color(hex: "1a1c1c"))
+            .tint(.appText)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 60)
@@ -144,10 +144,10 @@ struct TasksView: View {
         VStack(spacing: 8) {
             Image(systemName: "checklist")
                 .font(.system(size: 34))
-                .foregroundColor(Color(hex: "444748").opacity(0.3))
+                .foregroundColor(.appTextSec.opacity(0.3))
             Text("Нет задач")
                 .font(.system(size: 14, design: .rounded))
-                .foregroundColor(Color(hex: "444748").opacity(0.5))
+                .foregroundColor(.appTextSec.opacity(0.5))
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 60)
@@ -178,13 +178,13 @@ struct TasksView: View {
                 Text(title)
                     .font(.system(size: 10, weight: .bold, design: .rounded))
                     .tracking(0.08 * 10)
-                    .foregroundColor(Color(hex: "444748").opacity(0.6))
+                    .foregroundColor(.appTextSec.opacity(0.6))
 
                 Spacer()
 
                 Text("\(count) TASKS")
                     .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(hex: "444748").opacity(0.3))
+                    .foregroundColor(.appTextSec.opacity(0.3))
             }
             .padding(.bottom, 4)
             .padding(.horizontal, 20)
@@ -215,13 +215,13 @@ struct TasksView: View {
                 Text("COMPLETED")
                     .font(.system(size: 10, weight: .bold, design: .rounded))
                     .tracking(0.08 * 10)
-                    .foregroundColor(Color(hex: "444748").opacity(0.4))
+                    .foregroundColor(.appTextSec.opacity(0.4))
 
                 Spacer()
 
                 Text("\(tasks.count) TASKS")
                     .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(hex: "444748").opacity(0.2))
+                    .foregroundColor(.appTextSec.opacity(0.2))
             }
             .padding(.bottom, 4)
             .padding(.horizontal, 20)
@@ -288,7 +288,7 @@ struct TaskRowView: View {
                 if isCompleted || isAnimating {
                     ZStack {
                         Circle()
-                            .fill(Color(hex: "1a1c1c"))
+                            .fill(.appText)
                             .frame(width: 22, height: 22)
                         Image(systemName: "checkmark")
                             .font(.system(size: 10, weight: .black))
@@ -296,7 +296,7 @@ struct TaskRowView: View {
                     }
                 } else {
                     Circle()
-                        .stroke(Color(hex: "747878").opacity(0.5), lineWidth: 1.5)
+                        .stroke(.appBorder.opacity(0.5), lineWidth: 1.5)
                         .frame(width: 22, height: 22)
                 }
             }
@@ -306,14 +306,14 @@ struct TaskRowView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(task.title ?? "")
                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(isCompleted ? Color(hex: "444748").opacity(0.3) : Color(hex: "1a1c1c"))
+                    .foregroundColor(isCompleted ? .appTextSec.opacity(0.3) : .appText)
                     .strikethrough(isCompleted)
                     .lineLimit(2)
                     .overlay(alignment: .leading) {
                         if isAnimating {
                             GeometryReader { geo in
                                 Rectangle()
-                                    .fill(Color(hex: "747878").opacity(0.5))
+                                    .fill(.appBorder.opacity(0.5))
                                     .frame(width: geo.size.width * sweepWidth, height: 1.5)
                                     .offset(y: geo.size.height / 2 - 0.75)
                             }
@@ -324,12 +324,12 @@ struct TaskRowView: View {
                     if let due = task.dueDateComponents?.date {
                         Text(relativeDateString(due))
                             .font(.system(size: 12, weight: .medium, design: .rounded))
-                            .foregroundColor(isCompleted ? Color(hex: "444748").opacity(0.15) : Color(hex: "444748").opacity(0.6))
+                            .foregroundColor(isCompleted ? .appTextSec.opacity(0.15) : .appTextSec.opacity(0.6))
                     }
                     if let list = task.calendar {
                         Text(list.title)
                             .font(.system(size: 11, weight: .medium, design: .rounded))
-                            .foregroundColor(isCompleted ? Color(hex: "444748").opacity(0.1) : Color(hex: "444748").opacity(0.35))
+                            .foregroundColor(isCompleted ? .appTextSec.opacity(0.1) : .appTextSec.opacity(0.35))
                     }
                 }
             }
@@ -392,13 +392,13 @@ struct AddTaskView: View {
             HStack {
                 Button("Cancel") { dismiss() }
                     .font(.system(size: 15, design: .rounded))
-                    .foregroundColor(Color(hex: "444748").opacity(0.6))
+                    .foregroundColor(.appTextSec.opacity(0.6))
 
                 Spacer()
 
                 Text("New Task")
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
 
                 Spacer()
 
@@ -412,7 +412,7 @@ struct AddTaskView: View {
                     dismiss()
                 }
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundColor(Color(hex: "1a1c1c"))
+                .foregroundColor(.appText)
                 .opacity(title.trimmingCharacters(in: .whitespaces).isEmpty ? 0.4 : 1)
                 .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
             }
@@ -422,10 +422,10 @@ struct AddTaskView: View {
 
             TextField("What do you need to do?", text: $title)
                 .font(.system(size: 17, design: .rounded))
-                .foregroundColor(Color(hex: "1a1c1c"))
+                .foregroundColor(.appText)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 14)
-                .background(Color(hex: "eeeeee"))
+                .background(.appGrayBg)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal, 20)
                 .padding(.bottom, 16)
@@ -436,15 +436,15 @@ struct AddTaskView: View {
                 HStack(spacing: 10) {
                     Image(systemName: hasDueDate ? "calendar.circle.fill" : "calendar.circle")
                         .font(.system(size: 20))
-                        .foregroundColor(Color(hex: "1a1c1c"))
+                        .foregroundColor(.appText)
                     Text("Due Date")
                         .font(.system(size: 15, design: .rounded))
-                        .foregroundColor(Color(hex: "1a1c1c"))
+                        .foregroundColor(.appText)
                     Spacer()
                     if hasDueDate {
                         Image(systemName: "chevron.up")
                             .font(.system(size: 12))
-                            .foregroundColor(Color(hex: "444748").opacity(0.4))
+                            .foregroundColor(.appTextSec.opacity(0.4))
                     }
                 }
                 .padding(.horizontal, 20)
@@ -462,7 +462,7 @@ struct AddTaskView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "list.bullet.circle")
                         .font(.system(size: 20))
-                        .foregroundColor(Color(hex: "1a1c1c"))
+                        .foregroundColor(.appText)
                     Picker("List", selection: $selectedList) {
                         Text("Default").tag(nil as EKCalendar?)
                         ForEach(ek.reminderLists, id: \.calendarIdentifier) { list in
@@ -470,7 +470,7 @@ struct AddTaskView: View {
                         }
                     }
                     .pickerStyle(.menu)
-                    .tint(Color(hex: "1a1c1c"))
+                    .tint(.appText)
                     .font(.system(size: 15, design: .rounded))
                 }
                 .padding(.horizontal, 20)

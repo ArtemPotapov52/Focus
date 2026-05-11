@@ -28,11 +28,11 @@ struct FocusSessionSetupView: View {
             HStack {
                 Button("Cancel") { dismiss() }
                     .font(.system(size: 15, design: .rounded))
-                    .foregroundColor(Color(hex: "444748"))
+                    .foregroundColor(.appTextSec)
                 Spacer()
                 Text("Focus Session")
                     .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
                 Spacer()
                 Color.clear.frame(width: 44)
             }
@@ -43,11 +43,11 @@ struct FocusSessionSetupView: View {
             HStack {
                 Text("Select tasks")
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "444748").opacity(0.5))
+                    .foregroundColor(.appTextSec.opacity(0.5))
                 Spacer()
                 Text("\(selectedIDs.count) selected")
                     .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 8)
@@ -60,21 +60,21 @@ struct FocusSessionSetupView: View {
                         let isSel = selectedIDs.contains(id)
                         HStack(spacing: 12) {
                             RoundedRectangle(cornerRadius: 6)
-                                .stroke(isSel ? Color(hex: "1a1c1c") : Color(hex: "c4c7c7"), lineWidth: isSel ? 2 : 1)
+                                .stroke(isSel ? .appText : .appBorder, lineWidth: isSel ? 2 : 1)
                                 .frame(width: 22, height: 22)
                                 .overlay(
                                     Group {
                                         if isSel {
                                             Image(systemName: "checkmark")
                                                 .font(.system(size: 11, weight: .black))
-                                                .foregroundColor(Color(hex: "1a1c1c"))
+                                                .foregroundColor(.appText)
                                         }
                                     }
                                 )
 
                             Text(task.title ?? "")
                                 .font(.system(size: 15, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(hex: "1a1c1c"))
+                                .foregroundColor(.appText)
                                 .lineLimit(2)
 
                             Spacer()
@@ -104,10 +104,10 @@ struct FocusSessionSetupView: View {
                     HStack {
                         Image(systemName: showCalendar ? "checkmark.square.fill" : "square")
                             .font(.system(size: 18))
-                            .foregroundColor(showCalendar ? Color(hex: "1a1c1c") : Color(hex: "c4c7c7"))
+                            .foregroundColor(showCalendar ? .appText : .appBorder)
                         Text("Show calendar events")
                             .font(.system(size: 14, design: .rounded))
-                            .foregroundColor(Color(hex: "1a1c1c"))
+                            .foregroundColor(.appText)
                         Spacer()
                     }
                     .contentShape(Rectangle())
@@ -119,11 +119,11 @@ struct FocusSessionSetupView: View {
                 HStack {
                     Text("Duration")
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(hex: "444748").opacity(0.5))
+                        .foregroundColor(.appTextSec.opacity(0.5))
                     Spacer()
                     Text(selectedMinutes < 60 ? "\(selectedMinutes) min" : "\(selectedMinutes / 60) h")
                         .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(hex: "1a1c1c"))
+                        .foregroundColor(.appText)
                 }
                 .padding(.horizontal, 20)
 
@@ -132,10 +132,10 @@ struct FocusSessionSetupView: View {
                         ForEach(timeOptions, id: \.self) { min in
                             Text(timeLabel(min))
                                 .font(.system(size: 15, weight: selectedMinutes == min ? .semibold : .medium, design: .rounded))
-                                .foregroundColor(selectedMinutes == min ? .white : Color(hex: "1a1c1c"))
+                                .foregroundColor(selectedMinutes == min ? .white : .appText)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
-                                .background(selectedMinutes == min ? Color(hex: "1a1c1c") : Color(hex: "eeeeee"))
+                                .background(selectedMinutes == min ? .appText : .appGrayBg)
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                                 .contentShape(Rectangle())
                                 .onTapGesture { selectedMinutes = min }
@@ -159,14 +159,14 @@ struct FocusSessionSetupView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(selectedIDs.isEmpty ? Color(hex: "c4c7c7") : Color(hex: "1a1c1c"))
+                        .background(selectedIDs.isEmpty ? .appBorder : .appText)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 .disabled(selectedIDs.isEmpty)
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
             }
-            .background(Color(hex: "ffffff"))
+            .background(.appWhite)
         }
         .background(Color.appBg)
     }

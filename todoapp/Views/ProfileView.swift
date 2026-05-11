@@ -43,7 +43,7 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(Color(hex: "f9f9f9"))
+        .background(.appBg)
         .alert(alertMessage, isPresented: $showAlert) { Button("OK") {} }
     }
 
@@ -52,12 +52,12 @@ struct ProfileView: View {
             Button { dismiss() } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Color(hex: "444748").opacity(0.6))
+                    .foregroundColor(.appTextSec.opacity(0.6))
             }
             Spacer()
             Text("Profile")
                 .font(.system(size: 16, weight: .semibold, design: .rounded))
-                .foregroundColor(Color(hex: "1a1c1c"))
+                .foregroundColor(.appText)
             Spacer()
             Color.clear.frame(width: 16)
         }
@@ -74,43 +74,43 @@ struct ProfileView: View {
             HStack(spacing: 6) {
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .font(.system(size: 18))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
                 Text("Focus")
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
             }
             .padding(.top, 24)
             .padding(.bottom, 8)
 
             Text(isRegister ? "Create account" : "Sign in")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundColor(Color(hex: "1a1c1c"))
+                .foregroundColor(.appText)
 
             VStack(spacing: 12) {
                 field("Email", text: $email, keyboard: .emailAddress)
                 SecureField("Password", text: $password)
                     .font(.system(size: 15, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
-                    .background(Color(hex: "ffffff"))
+                    .background(.appWhite)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color(hex: "c4c7c7").opacity(0.3), lineWidth: 1)
+                            .stroke(.appBorder.opacity(0.3), lineWidth: 1)
                     )
 
                 if isRegister {
                     SecureField("Confirm password", text: $confirmPassword)
                         .font(.system(size: 15, design: .rounded))
-                        .foregroundColor(Color(hex: "1a1c1c"))
+                        .foregroundColor(.appText)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
-                        .background(Color(hex: "ffffff"))
+                        .background(.appWhite)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color(hex: "c4c7c7").opacity(0.3), lineWidth: 1)
+                                .stroke(.appBorder.opacity(0.3), lineWidth: 1)
                         )
                 }
             }
@@ -120,7 +120,7 @@ struct ProfileView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Optional info")
                         .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(hex: "444748").opacity(0.5))
+                        .foregroundColor(.appTextSec.opacity(0.5))
                         .padding(.leading, 4)
 
                     VStack(spacing: 10) {
@@ -142,7 +142,7 @@ struct ProfileView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color(hex: "1a1c1c"))
+                    .background(.appText)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             .padding(.horizontal, 20)
@@ -152,7 +152,7 @@ struct ProfileView: View {
             } label: {
                 Text(isRegister ? "Already have an account? Sign In" : "Don't have an account? Create one")
                     .font(.system(size: 13, design: .rounded))
-                    .foregroundColor(Color(hex: "006685"))
+                    .foregroundColor(.appAccent)
             }
         }
     }
@@ -167,11 +167,11 @@ struct ProfileView: View {
                     if avatarData.isEmpty {
                         ZStack {
                             Circle()
-                                .fill(Color(hex: "e2e2e2"))
+                                .fill(.appGrayBg)
                                 .frame(width: avatarSize, height: avatarSize)
                             Image(systemName: "camera.fill")
                                 .font(.system(size: 18))
-                                .foregroundColor(Color(hex: "444748").opacity(0.4))
+                                .foregroundColor(.appTextSec.opacity(0.4))
                         }
                     } else {
                         Image(uiImage: UIImage(data: avatarData) ?? UIImage())
@@ -183,17 +183,17 @@ struct ProfileView: View {
                 }
                 .overlay(
                     Circle()
-                        .stroke(Color(hex: "c4c7c7").opacity(0.2), lineWidth: 1)
+                        .stroke(.appBorder.opacity(0.2), lineWidth: 1)
                 )
 
                 Text(displayName.isEmpty ? storedEmail : displayName)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
 
                 if !jobTitle.isEmpty {
                     Text(jobTitle)
                         .font(.system(size: 14, design: .rounded))
-                        .foregroundColor(Color(hex: "444748").opacity(0.6))
+                        .foregroundColor(.appTextSec.opacity(0.6))
                         .padding(.top, -16)
                 }
 
@@ -248,16 +248,16 @@ struct ProfileView: View {
     private func field(_ placeholder: String, text: Binding<String>, keyboard: UIKeyboardType = .default, axis: Axis = .horizontal) -> some View {
         TextField(placeholder, text: text, axis: axis)
             .font(.system(size: 15, design: .rounded))
-            .foregroundColor(Color(hex: "1a1c1c"))
+            .foregroundColor(.appText)
             .autocapitalization(.none)
             .keyboardType(keyboard)
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            .background(Color(hex: "ffffff"))
+            .background(.appWhite)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(hex: "c4c7c7").opacity(0.3), lineWidth: 1)
+                    .stroke(.appBorder.opacity(0.3), lineWidth: 1)
             )
     }
 
@@ -265,26 +265,26 @@ struct ProfileView: View {
         HStack(spacing: 14) {
             Image(systemName: icon)
                 .font(.system(size: 16))
-                .foregroundColor(Color(hex: "006685"))
+                .foregroundColor(.appAccent)
                 .frame(width: 20)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "444748").opacity(0.5))
+                    .foregroundColor(.appTextSec.opacity(0.5))
                 Text(text)
                     .font(.system(size: 14, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
             }
 
             Spacer()
         }
         .padding(16)
-        .background(Color(hex: "ffffff"))
+        .background(.appWhite)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(hex: "c4c7c7").opacity(0.2), lineWidth: 1)
+                .stroke(.appBorder.opacity(0.2), lineWidth: 1)
         )
     }
 

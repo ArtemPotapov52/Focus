@@ -57,14 +57,14 @@ struct CalendarView: View {
         VStack(spacing: 12) {
             Image(systemName: "calendar.badge.exclamationmark")
                 .font(.system(size: 34))
-                .foregroundColor(Color(hex: "444748").opacity(0.3))
+                .foregroundColor(.appTextSec.opacity(0.3))
             Text("No calendar access")
                 .font(.system(size: 14, design: .rounded))
-                .foregroundColor(Color(hex: "444748").opacity(0.6))
+                .foregroundColor(.appTextSec.opacity(0.6))
             Button("Allow") {
                 Task { await ek.requestAccess() }
             }
-            .tint(Color(hex: "1a1c1c"))
+            .tint(.appText)
         }
         .frame(maxHeight: .infinity)
     }
@@ -76,23 +76,23 @@ struct CalendarView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Schedule")
                     .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
                 Text(monthYearString)
                     .font(.system(size: 11, weight: .bold, design: .rounded))
                     .tracking(0.08 * 11)
-                    .foregroundColor(Color(hex: "444748").opacity(0.5))
+                    .foregroundColor(.appTextSec.opacity(0.5))
             }
             Spacer()
             HStack(spacing: 16) {
                 Button { moveMonth(-1) } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(Color(hex: "444748").opacity(0.5))
+                        .foregroundColor(.appTextSec.opacity(0.5))
                 }
                 Button { moveMonth(1) } label: {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(Color(hex: "444748").opacity(0.5))
+                        .foregroundColor(.appTextSec.opacity(0.5))
                 }
             }
         }
@@ -108,7 +108,7 @@ struct CalendarView: View {
             ForEach(Array(weekdays.enumerated()), id: \.offset) { _, day in
                 Text(day)
                     .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(hex: "444748").opacity(0.5))
+                    .foregroundColor(.appTextSec.opacity(0.5))
                     .frame(maxWidth: .infinity)
             }
         }
@@ -144,12 +144,12 @@ struct CalendarView: View {
             ZStack {
                 if isSelected {
                     Circle()
-                        .fill(Color(hex: "1a1c1c"))
+                        .fill(.appText)
                         .frame(width: 28, height: 28)
                         .matchedGeometryEffect(id: "selected", in: selectionAnimation)
                 } else if isToday {
                     Circle()
-                        .stroke(Color(hex: "1a1c1c"), lineWidth: 1.5)
+                        .stroke(.appText, lineWidth: 1.5)
                         .frame(width: 28, height: 28)
                 }
 
@@ -157,13 +157,13 @@ struct CalendarView: View {
                     .font(.system(size: 12, weight: isSelected || isToday ? .bold : .medium, design: .rounded))
                     .foregroundColor(
                         isSelected ? .white :
-                        isCurrentMonth ? Color(hex: "1a1c1c") :
-                        Color(hex: "444748").opacity(0.25)
+                        isCurrentMonth ? .appText :
+                        .appTextSec.opacity(0.25)
                     )
 
                 if hasEvents && !isToday {
                     Circle()
-                        .fill(Color(hex: "1a1c1c"))
+                        .fill(.appText)
                         .frame(width: 4, height: 4)
                         .offset(y: 11)
                 }
@@ -180,18 +180,18 @@ struct CalendarView: View {
 
         return VStack(alignment: .leading, spacing: 0) {
             Divider()
-                .background(Color(hex: "c4c7c7").opacity(0.3))
+                .background(.appBorder.opacity(0.3))
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
 
             HStack {
                 Text(formattedSelectedDate)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "444748").opacity(0.7))
+                    .foregroundColor(.appTextSec.opacity(0.7))
                 Spacer()
                 Text("\(dayEvents.count) events")
                     .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundColor(Color(hex: "444748").opacity(0.4))
+                    .foregroundColor(.appTextSec.opacity(0.4))
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 12)
@@ -199,7 +199,7 @@ struct CalendarView: View {
             if dayEvents.isEmpty {
                 Text("No events for this day")
                     .font(.system(size: 14, design: .rounded))
-                    .foregroundColor(Color(hex: "444748").opacity(0.3))
+                    .foregroundColor(.appTextSec.opacity(0.3))
                     .padding(.horizontal, 20)
                     .padding(.vertical, 8)
             } else {
@@ -215,14 +215,14 @@ struct CalendarView: View {
 
     private func agendaEventRow(_ event: EKEvent) -> some View {
         let now = Date()
-        let bgColor: Color
-        if event.endDate < now {
-            bgColor = Color(hex: "f0f7f0")
-        } else if event.startDate <= now && event.endDate >= now {
-            bgColor = Color(hex: "eef6ff")
-        } else {
-            bgColor = Color(hex: "fff5f5")
-        }
+            let bgColor: Color
+            if event.endDate < now {
+                bgColor = .appGreenBg
+            } else if event.startDate <= now && event.endDate >= now {
+                bgColor = .appBlueBg
+            } else {
+                bgColor = .appPinkBg
+            }
 
         return Button {
             selectedEvent = event
@@ -231,11 +231,11 @@ struct CalendarView: View {
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(timeString(event.startDate, timeZone: event.timeZone))
                         .font(.system(size: 11, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(hex: "444748").opacity(0.6))
+                        .foregroundColor(.appTextSec.opacity(0.6))
                     if !event.isAllDay {
                         Text(timeString(event.endDate, timeZone: event.timeZone))
                             .font(.system(size: 10, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(hex: "444748").opacity(0.35))
+                            .foregroundColor(.appTextSec.opacity(0.35))
                     }
                 }
                 .frame(width: 42)
@@ -243,12 +243,12 @@ struct CalendarView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(event.title ?? "Untitled")
                         .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(hex: "1a1c1c"))
+                        .foregroundColor(.appText)
                         .multilineTextAlignment(.leading)
                     if let loc = event.location, !loc.isEmpty {
                         Text(loc)
                             .font(.system(size: 12, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(hex: "444748").opacity(0.8))
+                            .foregroundColor(.appTextSec.opacity(0.8))
                     }
                 }
                 .padding(.horizontal, 16)
@@ -272,7 +272,7 @@ struct CalendarView: View {
                 .font(.system(size: 22, weight: .medium))
                 .foregroundColor(.white)
                 .frame(width: 48, height: 48)
-                .background(Color(hex: "1a1c1c"))
+                .background(.appText)
                 .clipShape(Circle())
                 .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
         }

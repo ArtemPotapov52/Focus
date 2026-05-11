@@ -124,7 +124,7 @@ struct FocusSessionActiveView: View {
             } label: {
                 Text("Close")
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(Color.white)

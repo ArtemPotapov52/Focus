@@ -137,7 +137,7 @@ struct ContentView: View {
         .background(.ultraThinMaterial)
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(Color(hex: "c4c7c7").opacity(0.1))
+                .fill(Color.appBorder.opacity(0.1))
                 .frame(height: 1)
         }
     }
@@ -147,7 +147,7 @@ struct AvatarIcon: View {
     var body: some View {
         Image(systemName: "person.circle")
             .font(.system(size: 22))
-            .foregroundColor(Color(hex: "1a1c1c"))
+            .foregroundColor(.appText)
     }
 }
 

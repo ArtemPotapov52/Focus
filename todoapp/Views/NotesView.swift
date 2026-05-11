@@ -20,10 +20,10 @@ struct NotesView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("All Notes")
                                 .font(.system(size: 26, weight: .bold, design: .rounded))
-                                .foregroundColor(Color(hex: "1a1c1c"))
+                                .foregroundColor(.appText)
                             Text("\(notes.count) notes")
                                 .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(hex: "444748").opacity(0.6))
+                                .foregroundColor(.appTextSec.opacity(0.6))
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.top, 16)
@@ -48,7 +48,7 @@ struct NotesView: View {
                     .foregroundColor(.white)
                     .frame(width: 48, height: 48)
                     .offset(y: -1)
-                    .background(Color(hex: "1a1c1c"))
+                    .background(.appText)
                     .clipShape(Circle())
                     .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
             }
@@ -106,20 +106,20 @@ struct NotesView: View {
             HStack(spacing: 6) {
                 Image(systemName: "sparkles")
                     .font(.system(size: 16))
-                    .foregroundColor(Color(hex: "006685"))
+                    .foregroundColor(.appAccent)
                 Text("AI INTELLIGENCE")
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .tracking(0.05 * 11)
-                    .foregroundColor(Color(hex: "006685"))
+                    .foregroundColor(.appAccent)
             }
 
             Text("Weekly Review")
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
-                .foregroundColor(Color(hex: "1a1c1c"))
+                .foregroundColor(.appText)
 
             Text("You've captured 4 ideas regarding \"Minimalist UI\" and 2 meeting drafts. Your focus has been predominantly on structural alignment this week.")
                 .font(.system(size: 14, design: .rounded))
-                .foregroundColor(Color(hex: "444748"))
+                .foregroundColor(.appTextSec)
                 .lineSpacing(2)
 
             Button {
@@ -129,17 +129,17 @@ struct NotesView: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color(hex: "1a1c1c"))
+                    .background(.appText)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(hex: "f3f3f4"))
+        .background(.appBubble)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(hex: "c4c7c7").opacity(0.3), lineWidth: 1)
+                .stroke(.appBorder.opacity(0.3), lineWidth: 1)
         )
         .padding(.horizontal, 20)
         .padding(.bottom, 20)
@@ -164,12 +164,12 @@ struct NotesView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(note.title.isEmpty ? "Untitled" : note.title)
                             .font(.system(size: 17, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(hex: "1a1c1c"))
+                            .foregroundColor(.appText)
                             .lineLimit(1)
 
                         Text(note.content)
                             .font(.system(size: 14, design: .rounded))
-                            .foregroundColor(Color(hex: "444748"))
+                            .foregroundColor(.appTextSec)
                             .lineLimit(2)
                             .lineSpacing(2)
                     }
@@ -178,17 +178,17 @@ struct NotesView: View {
 
                     Text(timestampString(note.updatedAt))
                         .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(hex: "444748").opacity(0.5))
+                        .foregroundColor(.appTextSec.opacity(0.5))
                 }
 
                 if let cat = note.category {
                     HStack(spacing: 4) {
                         Text(cat)
                             .font(.system(size: 11, weight: .medium, design: .rounded))
-                            .foregroundColor(Color(hex: "006685"))
+                            .foregroundColor(.appAccent)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 2)
-                            .background(Color(hex: "bfe9ff").opacity(0.3))
+                            .background(.appAccentBg.opacity(0.3))
                             .clipShape(RoundedRectangle(cornerRadius: 4))
                     }
                     .padding(.top, 4)
@@ -207,11 +207,11 @@ struct NotesView: View {
             }
         }
         .padding(16)
-        .background(Color(hex: "ffffff"))
+        .background(.appWhite)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color(hex: "c4c7c7").opacity(0.2), lineWidth: 1)
+                .stroke(.appBorder.opacity(0.2), lineWidth: 1)
         )
     }
 
@@ -268,19 +268,19 @@ struct NoteEditorView: View {
             HStack {
                 Button("Cancel") { dismiss() }
                     .font(.system(size: 15, design: .rounded))
-                    .foregroundColor(Color(hex: "444748").opacity(0.6))
+                    .foregroundColor(.appTextSec.opacity(0.6))
 
                 Spacer()
 
                 Text(title.isEmpty ? "New Note" : "Edit Note")
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
 
                 Spacer()
 
                 Button("Save") { onSave(title, content, category, imageData) }
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "1a1c1c"))
+                    .foregroundColor(.appText)
                     .opacity(title.isEmpty && content.isEmpty ? 0.4 : 1)
                     .disabled(title.isEmpty && content.isEmpty)
             }
@@ -297,31 +297,31 @@ struct NoteEditorView: View {
                         HStack(spacing: 0) {
                             Image(systemName: "tag")
                                 .font(.system(size: 14))
-                                .foregroundColor(Color(hex: "444748").opacity(0.6))
+                                .foregroundColor(.appTextSec.opacity(0.6))
                                 .frame(width: 16)
                                 .padding(.leading, 0)
                             if let cat = category {
                                 Text(cat)
                                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color(hex: "006685"))
+                                    .foregroundColor(.appAccent)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 3)
-                                    .background(Color(hex: "bfe9ff").opacity(0.3))
+                                    .background(.appAccentBg.opacity(0.3))
                                     .clipShape(RoundedRectangle(cornerRadius: 4))
                             } else {
                                 Text("Add category")
                                     .font(.system(size: 13, design: .rounded))
-                                    .foregroundColor(Color(hex: "444748").opacity(0.4))
+                                    .foregroundColor(.appTextSec.opacity(0.4))
                             }
                             Spacer()
                             Image(systemName: showCategoryPicker ? "chevron.up" : "chevron.down")
                                 .font(.system(size: 12))
-                                .foregroundColor(Color(hex: "444748").opacity(0.3))
+                                .foregroundColor(.appTextSec.opacity(0.3))
                                 .padding(.trailing, 16)
                         }
                         .padding(.leading, 16)
                         .padding(.vertical, 10)
-                        .background(Color(hex: "f3f3f4"))
+                        .background(.appBubble)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
 
@@ -334,23 +334,23 @@ struct NoteEditorView: View {
                                     HStack {
                                         Text(cat)
                                             .font(.system(size: 14, design: .rounded))
-                                            .foregroundColor(Color(hex: "1a1c1c"))
+                                            .foregroundColor(.appText)
                                         Spacer()
                                         if category == cat {
                                             Image(systemName: "checkmark")
                                                 .font(.system(size: 12, weight: .bold))
-                                                .foregroundColor(Color(hex: "006685"))
+                                                .foregroundColor(.appAccent)
                                         }
                                     }
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 8)
-                                    .background(category == cat ? Color(hex: "bfe9ff").opacity(0.15) : Color.clear)
+                                    .background(category == cat ? .appAccentBg.opacity(0.15) : Color.clear)
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
                             }
                         }
                         .padding(8)
-                        .background(Color(hex: "f3f3f4"))
+                        .background(.appBubble)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                         .transition(.move(edge: .top).combined(with: .opacity))
                     }
@@ -361,17 +361,17 @@ struct NoteEditorView: View {
                             HStack(spacing: 10) {
                                 Image(systemName: "photo")
                                     .font(.system(size: 14))
-                                    .foregroundColor(Color(hex: "444748").opacity(0.6))
+                                    .foregroundColor(.appTextSec.opacity(0.6))
                                     .frame(width: 16)
                                 Text(imageData == nil ? "Add image" : "Change image")
                                     .font(.system(size: 13, design: .rounded))
-                                    .foregroundColor(Color(hex: "444748").opacity(imageData == nil ? 0.4 : 0.8))
+                                    .foregroundColor(.appTextSec.opacity(imageData == nil ? 0.4 : 0.8))
                                 Spacer()
                                 if imageData != nil {
                                     Button { imageData = nil } label: {
                                         Image(systemName: "xmark")
                                             .font(.system(size: 10, weight: .bold))
-                                            .foregroundColor(Color(hex: "444748").opacity(0.4))
+                                            .foregroundColor(.appTextSec.opacity(0.4))
                                     }
                                     .buttonStyle(.plain)
                                 }
@@ -379,7 +379,7 @@ struct NoteEditorView: View {
                             .padding(.leading, 16)
                             .padding(.trailing, 12)
                             .padding(.vertical, 10)
-                            .background(Color(hex: "f3f3f4"))
+                            .background(.appBubble)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
@@ -389,10 +389,10 @@ struct NoteEditorView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Image attached")
                                         .font(.system(size: 13, weight: .medium, design: .rounded))
-                                        .foregroundColor(Color(hex: "1a1c1c"))
+                                        .foregroundColor(.appText)
                                     Text("Tap to view full size")
                                         .font(.system(size: 11, design: .rounded))
-                                        .foregroundColor(Color(hex: "444748").opacity(0.5))
+                                        .foregroundColor(.appTextSec.opacity(0.5))
                                 }
 
                                 Spacer()
@@ -415,11 +415,11 @@ struct NoteEditorView: View {
                     // Title
                     TextField("Title", text: $title)
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(hex: "1a1c1c"))
+                        .foregroundColor(.appText)
                         .padding(.leading, 32)
                         .padding(.trailing, 16)
                         .padding(.vertical, 12)
-                        .background(Color(hex: "f3f3f4"))
+                        .background(.appBubble)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
 
                     // Content
@@ -427,19 +427,19 @@ struct NoteEditorView: View {
                         if content.isEmpty {
                             Text("Start writing...")
                                 .font(.system(size: 15, design: .rounded))
-                                .foregroundColor(Color(hex: "444748").opacity(0.3))
+                                .foregroundColor(.appTextSec.opacity(0.3))
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 14)
                         }
                         TextEditor(text: $content)
                             .font(.system(size: 15, design: .rounded))
-                            .foregroundColor(Color(hex: "1a1c1c"))
+                            .foregroundColor(.appText)
                             .scrollContentBackground(.hidden)
                             .frame(minHeight: 250)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 4)
                     }
-                    .background(Color(hex: "f3f3f4"))
+                    .background(.appBubble)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 .padding(.horizontal, 20)
