@@ -92,13 +92,32 @@ final class EventKitManager {
         }
     }
 
-    func addReminder(title: String, list: EKCalendar? = nil) {
+    func addReminder(title: String, list: EKCalendar? = nil, priority: Int = 0) {
         let reminder = EKReminder(eventStore: store)
         reminder.title = title
         reminder.calendar = list ?? selectedList ?? store.defaultCalendarForNewReminders()
+        if priority > 0 { reminder.priority = priority }
         try? store.save(reminder, commit: true)
         reminders.append(reminder)
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoWidgetsExtension")
+    }
+
+    func priorityLabel(_ p: Int) -> String {
+        switch p {
+        case 1: return "High"
+        case 5: return "Medium"
+        case 9: return "Low"
+        default: return ""
+        }
+    }
+
+    func priorityColor(_ p: Int) -> Color {
+        switch p {
+        case 1: return .red
+        case 5: return .blue
+        case 9: return .green
+        default: return .clear
+        }
     }
 
     func toggleComplete(_ reminder: EKReminder) {

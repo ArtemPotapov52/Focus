@@ -76,6 +76,10 @@ struct Provider: TimelineProvider {
                     }
                 }
                 tasks = Array(all.filter { !$0.isCompleted })
+                    .sorted { a, b in
+                        let order: [Int: Int] = [1: 0, 5: 1, 9: 2, 0: 3]
+                        return (order[a.priority] ?? 3) < (order[b.priority] ?? 3)
+                    }
             }
         } catch {
             return TasksEntry(date: Date(), tasks: [], error: "No access")
@@ -125,6 +129,11 @@ struct TodoWidgetsExtensionEntryView: View {
                         taskTitle: task.title
                     )) {
                         HStack(spacing: 10) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(priorityColor(task.priority))
+                                .frame(width: 3)
+                                .padding(.vertical, 2)
+
                             Circle()
                                 .stroke(.primary, lineWidth: 2)
                                 .frame(width: 16, height: 16)
@@ -141,6 +150,15 @@ struct TodoWidgetsExtensionEntryView: View {
                 }
                 Spacer(minLength: 0)
             }
+        }
+    }
+
+    private func priorityColor(_ p: Int) -> Color {
+        switch p {
+        case 1: return .red
+        case 5: return .blue
+        case 9: return .green
+        default: return .clear
         }
     }
 }

@@ -203,63 +203,79 @@ struct CalendarView: View {
                     .padding(.horizontal, 20)
                     .padding(.vertical, 8)
             } else {
-                VStack(spacing: 8) {
-                    ForEach(dayEvents, id: \.eventIdentifier) { event in
-                        agendaEventRow(event)
-                    }
-                }
+                timelineView(dayEvents)
             }
         }
         .padding(.bottom, 16)
     }
 
-    private func agendaEventRow(_ event: EKEvent) -> some View {
-        let now = Date()
-            let bgColor: Color
-            if event.endDate < now {
-                bgColor = .appGreenBg
-            } else if event.startDate <= now && event.endDate >= now {
-                bgColor = .appBlueBg
-            } else {
-                bgColor = .appPinkBg
-            }
+    private func timelineView(_ events: [EKEvent]) -> some View {
+        let hourHeight: CGFloat = 52
+        let startHour = max(0, (events.map { cal.component(.hour, from: $0.startDate) }.min() ?? 6) - 1)
+        let endHour = min(23, (events.map { cal.component(.hour, from: $0.endDate) }.max() ?? 22) + 2)
+        let totalHeight = CGFloat(endHour - startHour + 1) * hourHeight
 
-        return Button {
-            selectedEvent = event
-        } label: {
-            HStack(alignment: .center, spacing: 16) {
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text(timeString(event.startDate, timeZone: event.timeZone))
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
-                        .foregroundColor(.appTextSec.opacity(0.6))
-                    if !event.isAllDay {
-                        Text(timeString(event.endDate, timeZone: event.timeZone))
-                            .font(.system(size: 10, weight: .medium, design: .rounded))
-                            .foregroundColor(.appTextSec.opacity(0.35))
+        return ScrollView(.vertical, showsIndicators: false) {
+            ZStack(alignment: .topLeading) {
+                // Hour lines
+                VStack(spacing: 0) {
+                    ForEach(startHour...endHour, id: \.self) { h in
+                        HStack(spacing: 8) {
+                            Text(String(format: "%02d:00", h))
+                                .font(.system(size: 10, weight: .medium, design: .rounded))
+                                .foregroundColor(.appTextSec.opacity(0.3))
+                                .frame(width: 36, alignment: .trailing)
+                            Rectangle()
+                                .fill(.appBorder.opacity(0.15))
+                                .frame(height: 1)
+                        }
+                        .frame(height: hourHeight)
                     }
                 }
-                .frame(width: 42)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(event.title ?? "Untitled")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(.appText)
-                        .multilineTextAlignment(.leading)
-                    if let loc = event.location, !loc.isEmpty {
-                        Text(loc)
-                            .font(.system(size: 12, weight: .regular, design: .rounded))
-                            .foregroundColor(.appTextSec.opacity(0.8))
+                // Event cards positioned by time
+                ForEach(events, id: \.eventIdentifier) { event in
+                    let eventStart = cal.component(.hour, from: event.startDate) * 60 + cal.component(.minute, from: event.startDate)
+                    let eventEnd = cal.component(.hour, from: event.endDate) * 60 + cal.component(.minute, from: event.endDate)
+                    let dayStart = startHour * 60
+                    let startOffset = CGFloat(eventStart - dayStart) / 60 * hourHeight
+                    let duration = max(CGFloat(eventEnd - eventStart) / 60 * hourHeight, hourHeight / 2)
+
+                    Button {
+                        selectedEvent = event
+                    } label: {
+                        HStack(spacing: 8) {
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(Color(event.calendar.cgColor))
+                                .frame(width: 4)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(event.title ?? "Untitled")
+                                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.appText)
+                                    .lineLimit(2)
+                                if !event.isAllDay {
+                                    Text("\(timeString(event.startDate, timeZone: event.timeZone))–\(timeString(event.endDate, timeZone: event.timeZone))")
+                                        .font(.system(size: 10, weight: .medium, design: .rounded))
+                                        .foregroundColor(.appTextSec.opacity(0.5))
+                                }
+                            }
+                            Spacer()
+                        }
+                        .padding(8)
+                        .background(Color(event.calendar.cgColor).opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
+                    .buttonStyle(.plain)
+                    .offset(y: startOffset)
+                    .frame(height: max(duration - 4, hourHeight / 2))
+                    .padding(.leading, 48)
+                    .padding(.trailing, 8)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(bgColor)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
             }
-            .padding(.horizontal, 20)
+            .frame(height: totalHeight)
+            .padding(.horizontal, 8)
         }
-        .buttonStyle(.plain)
+        .frame(maxHeight: 300)
     }
 
     // MARK: - Add Button

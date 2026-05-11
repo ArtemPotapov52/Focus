@@ -102,13 +102,13 @@ struct TasksView: View {
                                 let evening = tasksInRange(incomplete, 17..<24)
 
                                 if !morning.isEmpty {
-                                    taskSection(title: "MORNING", count: morning.count, tasks: morning)
+                                    taskSection(title: "MORNING", count: morning.count, tasks: sortedByPriority(morning))
                                 }
                                 if !afternoon.isEmpty {
-                                    taskSection(title: "AFTERNOON", count: afternoon.count, tasks: afternoon)
+                                    taskSection(title: "AFTERNOON", count: afternoon.count, tasks: sortedByPriority(afternoon))
                                 }
                                 if !evening.isEmpty {
-                                    taskSection(title: "EVENING", count: evening.count, tasks: evening)
+                                    taskSection(title: "EVENING", count: evening.count, tasks: sortedByPriority(evening))
                                 }
                                 if !completed.isEmpty {
                                     completedSection(completed)
@@ -188,6 +188,13 @@ struct TasksView: View {
             guard let d = task.dueDateComponents?.date else { return range == 0..<12 }
             let h = Calendar.current.component(.hour, from: d)
             return range.contains(h)
+        }
+    }
+
+    private func sortedByPriority(_ tasks: [EKReminder]) -> [EKReminder] {
+        tasks.sorted { a, b in
+            let order: [Int: Int] = [1: 0, 5: 1, 9: 2, 0: 3]
+            return (order[a.priority] ?? 3) < (order[b.priority] ?? 3)
         }
     }
 
@@ -271,11 +278,11 @@ struct TasksView: View {
         let id = task.calendarItemIdentifier
         completingTaskId = id
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            withAnimation(.smooth(duration: 0.4)) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.smooth(duration: 0.3)) {
                 ek.toggleComplete(task)
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 completingTaskId = nil
             }
         }
@@ -305,6 +312,12 @@ struct TaskRowView: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
+            // Priority bar
+            RoundedRectangle(cornerRadius: 2)
+                .fill(priorityColor(task.priority))
+                .frame(width: 4)
+                .padding(.vertical, 4)
+
             // Circle
             Button {
                 if !isCompleted { onComplete() }
@@ -367,16 +380,23 @@ struct TaskRowView: View {
         .opacity(isAnimating ? 0.6 : 1)
         .onChange(of: isAnimating) { _, new in
             if new {
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.55)) {
-                    checkScale = 1
-                }
-                withAnimation(.easeInOut(duration: 0.35).delay(0.05)) {
+                checkScale = 1
+                withAnimation(.easeInOut(duration: 0.25)) {
                     sweepWidth = 1
                 }
             } else {
                 sweepWidth = 0
                 checkScale = 0
             }
+        }
+    }
+
+    private func priorityColor(_ p: Int) -> Color {
+        switch p {
+        case 1: return .red
+        case 5: return .blue
+        case 9: return .green
+        default: return .clear
         }
     }
 
@@ -416,6 +436,7 @@ struct AddTaskView: View {
     @State private var dueDate = Date().addingTimeInterval(3600)
     @State private var hasDueDate = false
     @State private var selectedList: EKCalendar?
+    @State private var selectedPriority = 0
     @AppStorage("default_list_id") private var defaultListId: String = ""
 
     var body: some View {
@@ -437,7 +458,7 @@ struct AddTaskView: View {
                     let t = title.trimmingCharacters(in: .whitespaces)
                     if !t.isEmpty {
                         let list = selectedList ?? defaultList ?? ek.selectedList
-                        ek.addReminder(title: t, list: list)
+                        ek.addReminder(title: t, list: list, priority: selectedPriority)
                         if let l = list {
                             selectedCategory = l
                             defaultListId = l.calendarIdentifier
@@ -511,6 +532,23 @@ struct AddTaskView: View {
                 .padding(.top, 12)
             }
 
+            HStack(spacing: 10) {
+                Image(systemName: "flag.circle")
+                    .font(.system(size: 20))
+                    .foregroundColor(priorityColor(selectedPriority))
+                Picker("Priority", selection: $selectedPriority) {
+                    Text("None").tag(0)
+                    Text("High").tag(1)
+                    Text("Medium").tag(5)
+                    Text("Low").tag(9)
+                }
+                .pickerStyle(.menu)
+                .tint(.appText)
+                .font(.system(size: 15, design: .rounded))
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 12)
+
             Spacer()
         }
         .presentationDetents([.large])
@@ -524,6 +562,15 @@ struct AddTaskView: View {
         }
         .onChange(of: selectedList) { _, list in
             if let l = list { defaultListId = l.calendarIdentifier }
+        }
+    }
+
+    private func priorityColor(_ p: Int) -> Color {
+        switch p {
+        case 1: return .red
+        case 5: return .blue
+        case 9: return .green
+        default: return .appTextSec.opacity(0.4)
         }
     }
 }
