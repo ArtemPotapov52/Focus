@@ -66,25 +66,23 @@ struct CalendarWidgetEntryView: View {
                     .foregroundColor(.secondary)
                     .tracking(1.5)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, 4)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 6)
 
-                VStack(spacing: 8) {
-                    ForEach(Array(entry.events.enumerated()), id: \.offset) { _, event in
-                        HStack(spacing: 8) {
+                VStack(spacing: 5) {
+                    ForEach(Array(entry.events.prefix(3).enumerated()), id: \.offset) { _, event in
+                        HStack(spacing: 6) {
                             Circle()
                                 .fill(.primary)
-                                .frame(width: 6, height: 6)
+                                .frame(width: 5, height: 5)
 
                             Text(event.title ?? "")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
                                 .foregroundColor(.primary)
                                 .lineLimit(2)
                                 .multilineTextAlignment(.leading)
 
                             Spacer(minLength: 0)
                         }
-                        .padding(.leading, 4)
                     }
                 }
 
