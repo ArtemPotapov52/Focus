@@ -43,7 +43,7 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(.appBg)
+        .background(Color.appBg)
         .alert(alertMessage, isPresented: $showAlert) { Button("OK") {} }
     }
 
@@ -93,11 +93,11 @@ struct ProfileView: View {
                     .foregroundColor(.appText)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
-                    .background(.appWhite)
+                    .background(Color.appWhite)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(.appBorder.opacity(0.3), lineWidth: 1)
+                            .stroke(Color.appBorder.opacity(0.3), lineWidth: 1)
                     )
 
                 if isRegister {
@@ -106,11 +106,11 @@ struct ProfileView: View {
                         .foregroundColor(.appText)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
-                        .background(.appWhite)
+                        .background(Color.appWhite)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(.appBorder.opacity(0.3), lineWidth: 1)
+                                .stroke(Color.appBorder.opacity(0.3), lineWidth: 1)
                         )
                 }
             }
@@ -142,7 +142,7 @@ struct ProfileView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(.appText)
+                    .background(Color.appText)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             .padding(.horizontal, 20)
@@ -167,7 +167,7 @@ struct ProfileView: View {
                     if avatarData.isEmpty {
                         ZStack {
                             Circle()
-                                .fill(.appGrayBg)
+                                .fill(Color.appGrayBg)
                                 .frame(width: avatarSize, height: avatarSize)
                             Image(systemName: "camera.fill")
                                 .font(.system(size: 18))
@@ -183,7 +183,7 @@ struct ProfileView: View {
                 }
                 .overlay(
                     Circle()
-                        .stroke(.appBorder.opacity(0.2), lineWidth: 1)
+                        .stroke(Color.appBorder.opacity(0.2), lineWidth: 1)
                 )
 
                 Text(displayName.isEmpty ? storedEmail : displayName)
@@ -253,11 +253,11 @@ struct ProfileView: View {
             .keyboardType(keyboard)
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            .background(.appWhite)
+            .background(Color.appWhite)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(.appBorder.opacity(0.3), lineWidth: 1)
+                    .stroke(Color.appBorder.opacity(0.3), lineWidth: 1)
             )
     }
 
@@ -280,11 +280,11 @@ struct ProfileView: View {
             Spacer()
         }
         .padding(16)
-        .background(.appWhite)
+        .background(Color.appWhite)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(.appBorder.opacity(0.2), lineWidth: 1)
+                .stroke(Color.appBorder.opacity(0.2), lineWidth: 1)
         )
     }
 

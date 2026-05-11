@@ -144,12 +144,12 @@ struct CalendarView: View {
             ZStack {
                 if isSelected {
                     Circle()
-                        .fill(.appText)
+                        .fill(Color.appText)
                         .frame(width: 28, height: 28)
                         .matchedGeometryEffect(id: "selected", in: selectionAnimation)
                 } else if isToday {
                     Circle()
-                        .stroke(.appText, lineWidth: 1.5)
+                        .stroke(Color.appText, lineWidth: 1.5)
                         .frame(width: 28, height: 28)
                 }
 
@@ -163,7 +163,7 @@ struct CalendarView: View {
 
                 if hasEvents && !isToday {
                     Circle()
-                        .fill(.appText)
+                        .fill(Color.appText)
                         .frame(width: 4, height: 4)
                         .offset(y: 11)
                 }
@@ -180,7 +180,7 @@ struct CalendarView: View {
 
         return VStack(alignment: .leading, spacing: 0) {
             Divider()
-                .background(.appBorder.opacity(0.3))
+                .background(Color.appBorder.opacity(0.3))
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
 
@@ -272,7 +272,7 @@ struct CalendarView: View {
                 .font(.system(size: 22, weight: .medium))
                 .foregroundColor(.white)
                 .frame(width: 48, height: 48)
-                .background(.appText)
+                .background(Color.appText)
                 .clipShape(Circle())
                 .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
         }

@@ -14,3 +14,18 @@ extension Color {
     static let appBlueBg = Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.06, green: 0.1, blue: 0.18, alpha: 1) : UIColor(Color(hex: "eef6ff")) })
     static let appPinkBg = Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 0.18, green: 0.06, blue: 0.06, alpha: 1) : UIColor(Color(hex: "fff5f5")) })
 }
+
+extension ShapeStyle where Self == Color {
+    static var appBg: Color { Color.appBg }
+    static var appText: Color { Color.appText }
+    static var appTextSec: Color { Color.appTextSec }
+    static var appGrayBg: Color { Color.appGrayBg }
+    static var appBorder: Color { Color.appBorder }
+    static var appBubble: Color { Color.appBubble }
+    static var appWhite: Color { Color.appWhite }
+    static var appAccent: Color { Color.appAccent }
+    static var appAccentBg: Color { Color.appAccentBg }
+    static var appGreenBg: Color { Color.appGreenBg }
+    static var appBlueBg: Color { Color.appBlueBg }
+    static var appPinkBg: Color { Color.appPinkBg }
+}
