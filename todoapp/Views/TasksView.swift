@@ -6,6 +6,7 @@ struct TasksView: View {
     @State private var showAdd = false
     @State private var selectedCategory: EKCalendar?
     @State private var completingTaskId: String?
+    @AppStorage("default_list_id") private var defaultListId: String = ""
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -42,6 +43,26 @@ struct TasksView: View {
                                             Text(list.title)
                                             if selectedCategory?.calendarIdentifier == list.calendarIdentifier {
                                                 Image(systemName: "checkmark")
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Divider()
+
+                                Section("Default") {
+                                    ForEach(ek.reminderLists, id: \.calendarIdentifier) { list in
+                                        Button {
+                                            defaultListId = list.calendarIdentifier
+                                        } label: {
+                                            HStack {
+                                                Text(list.title)
+                                                Spacer()
+                                                if defaultListId == list.calendarIdentifier {
+                                                    Image(systemName: "star.fill")
+                                                        .font(.system(size: 10))
+                                                        .foregroundColor(.appAccent)
+                                                }
                                             }
                                         }
                                     }

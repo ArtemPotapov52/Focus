@@ -24,8 +24,15 @@ struct AddTaskIntent: AppIntent {
 
         let reminder = EKReminder(eventStore: store)
         reminder.title = task
-        reminder.calendar = store.defaultCalendarForNewReminders()
-            ?? store.calendars(for: .reminder).first
+        let defaultId = UserDefaults.standard.string(forKey: "default_list_id")
+        if let id = defaultId, !id.isEmpty,
+           let list = store.calendars(for: .reminder).first(where: { $0.calendarIdentifier == id })
+        {
+            reminder.calendar = list
+        } else {
+            reminder.calendar = store.defaultCalendarForNewReminders()
+                ?? store.calendars(for: .reminder).first
+        }
 
         try store.save(reminder, commit: true)
         WidgetCenter.shared.reloadTimelines(ofKind: "TodoWidgetsExtension")
