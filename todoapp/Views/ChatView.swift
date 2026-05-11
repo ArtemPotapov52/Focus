@@ -10,7 +10,6 @@ struct ChatView: View {
     @Environment(EventKitManager.self) var ek
     @FocusState private var inputFocused
     @State private var kbHeight: CGFloat = 0
-    @AppStorage("ai_mode") private var aiMode = "focus"
 
     private let suggestions = ["Plan my day", "Summarize latest notes", "Refine goals", "What's on my schedule?"]
 
@@ -27,11 +26,6 @@ struct ChatView: View {
             // Input area
             inputArea
         }
-        .onAppear {
-            if aiMode == "focus" {
-                updateContext()
-            }
-        }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { n in
             if let r = n.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
                 kbHeight = r.height
@@ -40,48 +34,6 @@ struct ChatView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
             kbHeight = 0
         }
-    }
-
-    private func updateContext() {
-        let notesStr = notes.map { "- \($0.title): \($0.content)" }.joined(separator: "\n")
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
-        let todayEnd = cal.date(byAdding: .day, value: 1, to: today)!
-        let todayTasks = ek.reminders.filter { r in
-            guard let d = r.dueDateComponents?.date else { return false }
-            return d >= today && d < todayEnd
-        }
-        let tasksStr = todayTasks.compactMap { $0.title }.map { "- \($0)" }.joined(separator: "\n")
-        let todayEvents = ek.events.filter { cal.isDate($0.startDate, inSameDayAs: Date()) }
-        let eventsStr = todayEvents.map { e in
-            let df = DateFormatter()
-            df.dateFormat = "HH:mm"
-            return "- \(e.title ?? "Untitled") at \(df.string(from: e.startDate))"
-        }.joined(separator: "\n")
-
-        let weekAgo = cal.date(byAdding: .day, value: -7, to: today)!
-        let completedAll = ek.reminders.filter { r in
-            guard let cd = r.completionDate else { return false }
-            return cd >= weekAgo
-        }
-        let completedToday = completedAll.filter { cal.isDateInToday($0.completionDate ?? .distantPast) }
-        let completedWeek = completedAll.filter { !cal.isDateInToday($0.completionDate ?? .distantPast) }
-
-        let completedTodayStr = completedToday.compactMap { r -> String? in
-            guard let t = r.title, let cd = r.completionDate else { return nil }
-            let df = DateFormatter()
-            df.dateFormat = "HH:mm"
-            return "- \(t) (at \(df.string(from: cd)))"
-        }.joined(separator: "\n")
-
-        let completedWeekStr = completedWeek.compactMap { r -> String? in
-            guard let t = r.title, let cd = r.completionDate else { return nil }
-            let df = DateFormatter()
-            df.dateFormat = "EEE, MMM d"
-            return "- \(t) — \(df.string(from: cd))"
-        }.joined(separator: "\n")
-
-        chat.setContext(notes: notesStr, tasks: tasksStr, events: eventsStr, completedToday: completedTodayStr, completedWeek: completedWeekStr)
     }
 
     // MARK: - Empty Key
@@ -318,7 +270,7 @@ struct ChatView: View {
         .padding(.bottom, kbHeight > 0 ? 8 : 100)
         .padding(.top, 8)
         .background(
-            LinearGradient(colors: [Color(hex: "f9f9f9").opacity(0), Color(hex: "f9f9f9")], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [Color.appBg.opacity(0), Color.appBg], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
         )
     }
@@ -357,10 +309,6 @@ struct ChatView: View {
         let text = input.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty, !chat.isLoading else { return }
         input = ""
-        chat.useContext = aiMode == "focus"
-        if aiMode == "focus" {
-            updateContext()
-        }
         chat.send(text, apiKey: apiKey)
     }
 }

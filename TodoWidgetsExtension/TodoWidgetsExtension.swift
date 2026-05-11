@@ -89,16 +89,13 @@ struct Provider: TimelineProvider {
 struct TodoWidgetsExtensionEntryView: View {
     var entry: TasksEntry
 
-    private let textPrimary = Color(red: 0.1, green: 0.11, blue: 0.11)
-    private let textSecondary = Color(red: 0.267, green: 0.278, blue: 0.282).opacity(0.6)
-
     var body: some View {
         VStack(spacing: 0) {
             if let error = entry.error {
                 Spacer()
                 Text(error)
                     .font(.caption)
-                    .foregroundColor(textSecondary)
+                    .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity)
                 Spacer()
             } else {
@@ -107,7 +104,7 @@ struct TodoWidgetsExtensionEntryView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .containerBackground(.white, for: .widget)
+        .containerBackground(.background, for: .widget)
     }
 
     private var tasksList: some View {
@@ -118,7 +115,7 @@ struct TodoWidgetsExtensionEntryView: View {
                 Spacer(minLength: 0)
                 Text("No tasks")
                     .font(.system(size: 16, design: .rounded))
-                    .foregroundColor(textSecondary.opacity(0.5))
+                    .foregroundColor(.secondary.opacity(0.5))
                     .frame(maxWidth: .infinity)
                 Spacer(minLength: 0)
             } else {
@@ -128,14 +125,14 @@ struct TodoWidgetsExtensionEntryView: View {
                         taskID: task.calendarItemIdentifier,
                         taskTitle: task.title
                     )) {
-                        HStack(spacing: 12) {
+                        HStack(spacing: 10) {
                             Circle()
-                                .stroke(textPrimary, lineWidth: 2)
-                                .frame(width: 20, height: 20)
+                                .stroke(.primary, lineWidth: 2)
+                                .frame(width: 16, height: 16)
 
                             Text(task.title ?? "")
-                                .font(.system(size: 17, weight: .semibold, design: .rounded))
-                                .foregroundColor(textPrimary)
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .foregroundColor(.primary)
 
                             Spacer()
                         }

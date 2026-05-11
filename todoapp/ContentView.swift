@@ -5,13 +5,11 @@ struct ContentView: View {
     @Environment(\.scenePhase) var scenePhase
     @State private var selectedPage = 0
     @State private var music = MusicManager()
-    @State private var showFocus = false
     @State private var showProfile = false
     @State private var showFocusSession = false
     @State private var focusSession = FocusSessionManager()
     @State private var lastSceneRefresh = Date()
     @State private var keyboardVisible = false
-    @AppStorage("ai_mode") private var aiMode = "focus"
 
     let tabs: [(icon: String, label: String)] = [
         ("circle", "Tasks"),
@@ -22,47 +20,30 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Color(hex: "f9f9f9").ignoresSafeArea()
+            Color.appBg.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Top App Bar (static — doesn't scroll with pages)
+                // Top App Bar
                 HStack {
                     HStack(spacing: 6) {
                         Image(systemName: "antenna.radiowaves.left.and.right")
                             .font(.system(size: 18))
-                            .foregroundColor(Color(hex: "1a1c1c"))
+                            .foregroundColor(.appText)
                         Text("Focus")
                             .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(hex: "1a1c1c"))
+                            .foregroundColor(.appText)
                     }
 
-                    if selectedPage == 3 {
-                        Spacer()
-                        Picker("Mode", selection: $aiMode) {
-                            Text("Focus").tag("focus")
-                            Text("Simple").tag("simple")
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 180)
-                        .scaleEffect(0.85)
-                        Spacer()
-                    } else {
-                        Spacer()
-                    }
+                    Spacer()
 
                     HStack(spacing: 12) {
-                        Button { showFocus = true } label: {
-                            Image(systemName: "circle.dotted")
-                                .font(.system(size: 18))
-                                .foregroundColor(Color(hex: "1a1c1c").opacity(0.7))
-                        }
                         Button { showFocusSession = true } label: {
-                            Text("Focus")
+                            Text("Session")
                                 .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundColor(Color(hex: "1a1c1c"))
+                                .foregroundColor(.appText)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
-                                .background(Color(hex: "eeeeee"))
+                                .background(Color.appGrayBg)
                                 .clipShape(Capsule())
                         }
                         AvatarIcon()
@@ -70,7 +51,7 @@ struct ContentView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
-                .background(Color(hex: "f9f9f9"))
+                .background(Color.appBg)
 
                 TabView(selection: $selectedPage) {
                     TasksView(ek: ek)
@@ -110,9 +91,6 @@ struct ContentView: View {
                 ek.fetchEventsAround(Date())
             }
         }
-        .fullScreenCover(isPresented: $showFocus) {
-            FocusView()
-        }
         .fullScreenCover(isPresented: $showProfile) {
             ProfileView()
         }
@@ -141,12 +119,12 @@ struct ContentView: View {
                     VStack(spacing: 2) {
                         Image(systemName: tabs[i].icon)
                             .font(.system(size: 20))
-                            .foregroundColor(selectedPage == i ? Color(hex: "1a1c1c") : Color(hex: "444748").opacity(0.5))
+                            .foregroundColor(selectedPage == i ? .appText : Color.appTextSec.opacity(0.5))
 
                         Text(tabs[i].label)
                             .font(.custom("Plus Jakarta Sans", size: 11))
                             .fontWeight(selectedPage == i ? .bold : .medium)
-                            .foregroundColor(selectedPage == i ? Color(hex: "1a1c1c") : Color(hex: "444748").opacity(0.5))
+                            .foregroundColor(selectedPage == i ? .appText : Color.appTextSec.opacity(0.5))
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -155,7 +133,7 @@ struct ContentView: View {
         .padding(.horizontal, 20)
         .padding(.top, 8)
         .padding(.bottom, 24)
-        .background(Color(hex: "f9f9f9").opacity(0.9))
+        .background(Color.appBg.opacity(0.9))
         .background(.ultraThinMaterial)
         .overlay(alignment: .top) {
             Rectangle()

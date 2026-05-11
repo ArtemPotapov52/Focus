@@ -22,7 +22,7 @@ struct CalendarView: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            Color(hex: "f9f9f9").ignoresSafeArea()
+            Color.appBg.ignoresSafeArea()
 
             if !ek.calendarGranted {
                 noAccessView

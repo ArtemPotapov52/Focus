@@ -11,7 +11,7 @@ struct NotesView: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            Color(hex: "f9f9f9").ignoresSafeArea()
+            Color.appBg.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 ScrollView {

@@ -53,9 +53,6 @@ struct StatsProvider: TimelineProvider {
 struct StatsWidgetEntryView: View {
     var entry: StatsEntry
 
-    private let textPrimary = Color(red: 0.1, green: 0.11, blue: 0.11)
-    private let textSecondary = Color(red: 0.267, green: 0.278, blue: 0.282).opacity(0.6)
-
     private var dateString: String {
         let df = DateFormatter()
         df.locale = Locale(identifier: "en_US")
@@ -68,30 +65,30 @@ struct StatsWidgetEntryView: View {
             VStack(spacing: 2) {
                 Text("\(Calendar.current.component(.day, from: entry.date))")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundColor(textPrimary)
+                    .foregroundColor(.primary)
 
                 Text(dateString)
                     .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundColor(textSecondary)
+                    .foregroundColor(.secondary)
             }
             .frame(maxHeight: .infinity)
 
             Divider()
-                .background(textPrimary.opacity(0.08))
+                .background(.primary.opacity(0.08))
                 .padding(.horizontal, 20)
 
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text("\(entry.completedToday)")
                     .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(textPrimary)
+                    .foregroundColor(.primary)
                 Text("/\(entry.totalIncomplete)")
                     .font(.system(size: 16, weight: .bold, design: .rounded))
-                    .foregroundColor(textSecondary)
+                    .foregroundColor(.secondary)
             }
             .frame(maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .containerBackground(.white, for: .widget)
+        .containerBackground(.background, for: .widget)
     }
 }
 

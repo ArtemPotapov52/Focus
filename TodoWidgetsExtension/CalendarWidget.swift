@@ -48,9 +48,6 @@ struct CalendarProvider: TimelineProvider {
 struct CalendarWidgetEntryView: View {
     var entry: CalendarEntry
 
-    private let textPrimary = Color(red: 0.1, green: 0.11, blue: 0.11)
-    private let textSecondary = Color(red: 0.267, green: 0.278, blue: 0.282).opacity(0.6)
-
     private func timeString(_ date: Date) -> String {
         let df = DateFormatter()
         df.dateFormat = "HH:mm"
@@ -63,16 +60,16 @@ struct CalendarWidgetEntryView: View {
                 VStack(spacing: 8) {
                     Image(systemName: "antenna.radiowaves.left.and.right")
                         .font(.system(size: 20))
-                        .foregroundColor(textPrimary)
+                        .foregroundColor(.primary)
                     Text("Focus")
                         .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundColor(textPrimary)
+                        .foregroundColor(.primary)
                 }
                 .frame(maxHeight: .infinity)
             } else {
                 Text("TODAY")
                     .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .foregroundColor(textSecondary)
+                    .foregroundColor(.secondary)
                     .tracking(1.5)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.bottom, 6)
@@ -81,16 +78,16 @@ struct CalendarWidgetEntryView: View {
                     ForEach(Array(entry.events.enumerated()), id: \.offset) { _, event in
                         HStack(spacing: 6) {
                             Circle()
-                                .fill(textPrimary)
+                                .fill(.primary)
                                 .frame(width: 7, height: 7)
 
                             Text(timeString(event.startDate))
                                 .font(.system(size: 12, weight: .semibold, design: .rounded))
-                                .foregroundColor(textSecondary)
+                                .foregroundColor(.secondary)
 
                             Text(event.title ?? "")
                                 .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundColor(textPrimary)
+                                .foregroundColor(.primary)
                                 .lineLimit(1)
 
                             Spacer()
@@ -103,7 +100,7 @@ struct CalendarWidgetEntryView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding(14)
-        .containerBackground(.white, for: .widget)
+        .containerBackground(.background, for: .widget)
     }
 }
 

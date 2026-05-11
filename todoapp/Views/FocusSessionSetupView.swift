@@ -86,7 +86,7 @@ struct FocusSessionSetupView: View {
                             if isSel { selectedIDs.remove(id) }
                             else { selectedIDs.insert(id) }
                         }
-                        .background(Color(hex: "f9f9f9"))
+                        .background(Color.appBg)
 
                         Divider()
                             .padding(.leading, 52)
@@ -168,6 +168,6 @@ struct FocusSessionSetupView: View {
             }
             .background(Color(hex: "ffffff"))
         }
-        .background(Color(hex: "f9f9f9"))
+        .background(Color.appBg)
     }
 }
